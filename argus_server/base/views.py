@@ -10,3 +10,6 @@ from rest_framework.response import Response
 @permission_classes([IsAuthenticated])
 def protected_view(request):
     return Response({"message": "This is a protected view."})
+
+def singup(request):
+    return render(request, 'singup.html')

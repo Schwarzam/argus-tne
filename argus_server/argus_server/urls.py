@@ -22,8 +22,11 @@ from base import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('base.urls')),
+    
+    
     path('accounts/', include('allauth.urls')), # new
     path('api/auth/', include('dj_rest_auth.urls')),
-
+    
     path('test/', views.protected_view)
 ]
