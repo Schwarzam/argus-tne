@@ -21,6 +21,7 @@ function App() {
           Learn React
         </a>
       </header>
+      <embed src="https://stellarium-web.org/" width={1000} height={1000}></embed>
       <VirtualSkyComponent />
     </div>
   );

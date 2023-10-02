@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # custom apps go here...
     'rest_framework.authtoken',
     'base',
+    'users'
 ]
 
 MIDDLEWARE = [
@@ -156,3 +157,4 @@ REST_FRAMEWORK = {
 # This enables session based authentication
 SESSION_COOKIE_HTTPONLY = False
 
+AUTH_USER_MODEL = 'users.CustomUser'
