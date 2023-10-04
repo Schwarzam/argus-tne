@@ -1,12 +1,20 @@
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
+from astropy import units as u
 import re
 import pytz
 import ephem
 
+import numpy as np
+
+from django.conf import settings
+
 def _check_units(ra, dec):
-    # Pattern to match: any letter (a-z, A-Z), "°", "h"
-    pattern = r'[a-zA-Z°h]'
+    # Pattern to match: any letter (a-z, A-Z) or "°"
+    # Default unit is degrees, so if no unit, then is assumed as degs. 
+    pattern = r'[a-zA-Z°]'
+    ra = str(ra)
+    dec = str(dec)
     
     def check(input_string):
         # re.search returns a match object if the pattern is found, None otherwise
@@ -16,9 +24,9 @@ def _check_units(ra, dec):
             return False
     
     if not check(ra):
-        ra += 'h'  # default to hours for RA
+        ra += '°'
     if not check(dec):
-        dec += '°'  # default to degrees for Dec
+        dec += '°'
     
     return ra, dec
 
@@ -30,59 +38,47 @@ def convert_coord_to_degrees(ra, dec):
     ra, dec = _check_units(ra, dec)
 
     # Create a SkyCoord object
-    c = SkyCoord(ra, dec)
+    c = SkyCoord(ra=ra, dec=dec)
 
     # Return RA and Dec in degrees
     return c.ra.deg, c.dec.deg
 
-def get_lst(longitude, utc_now):
+def get_abovesky_coordinates(latitude=settings.LAT, longitude=settings.LON, utctime=datetime.utcnow()):
     """
-    Calculate the Local Sidereal Time (LST) based on the current UTC time and longitude.
-    """
-    # J2000: epoch of January 1, 2000, 12h TT
-    j2000 = datetime(2000, 1, 1, 12, 0)
-    days_since_j2000 = (utc_now - j2000).total_seconds() / 86400.0
+    Calculate the right ascension and declination coordinates of the observer.
 
-    # Greenwich Mean Sidereal Time (GMST) at 0h UT
-    gmst_at_0h = 280.46061837 + 360.98564736629 * days_since_j2000
+    Parameters
+    ----------
+    latitude : float, optional
+        The latitude of the observer in degrees. Default is the value in settings.LAT.
+    longitude : float, optional
+        The longitude of the observer in degrees. Default is the value in settings.LON.
+    utctime : datetime.datetime, optional
+        The UTC time of the observation. Default is the current UTC time.
 
-    # Convert GMST to range [0, 360]
-    gmst_at_0h %= 360
-
-    # GMST now
-    gmst_now = gmst_at_0h + 360.98564736629 * (utc_now.hour / 24.0)
-    
-    # Convert GMST to range [0, 360]
-    gmst_now %= 360
-
-    # Local Sidereal Time (LST)
-    lst = gmst_now + longitude
-
-    # Convert LST to range [0, 360]
-    lst %= 360
-
-    return lst
-
-def get_abovesky_coordinates(latitude, longitude, utctime = datetime.utcnow()):
-    """
-    Calculate the declination and right ascension of the sky directly above the given latitude and longitude using ephem.
+    Returns
+    -------
+    ra_hours : float
+        The right ascension coordinate of the observer in hours.
+    dec_degrees : float
+        The declination coordinate of the observer in degrees.
     """
     observer = ephem.Observer()
     observer.lat = str(latitude)
     observer.lon = str(longitude)
     
-    observer.date = utctime  # current time
-    #observer.date = ephem.now()  # current time
+    print(utctime)
+    observer.date = utctime
     
-    # RA is just the sidereal time
     ra_radians = observer.sidereal_time()
-    ra_hours = ra_radians * 12 / 3.141592653589793  # Convert from radians to hours
+    ra_hours = ra_radians * 12 / np.pi  # Convert from radians to hours
+    ra_degrees = ra_radians * 180 / np.pi  # Convert from hours to degrees
     
-    # Dec is just the latitude
     dec_radians = observer.lat
-    dec_degrees = dec_radians * 180 / 3.141592653589793  # Convert from radians to degrees
+    dec_degrees = dec_radians * 180 / np.pi  # Convert from radians to degrees
 
-    return ra_hours, dec_degrees
+    print("above", ra_hours, dec_degrees)
+    return ra_degrees, dec_degrees
 
 def brasilia_to_utc(datetime_str):
     """
@@ -107,7 +103,56 @@ def brasilia_to_utc(datetime_str):
     
     return utc_dt
 
+def angular_distance_astropy(ra1, dec1, ra2, dec2):
+    """
+    Calculate the angular distance between two points specified by RA and Dec using Astropy.
+    
+    Parameters:
+    - ra1, dec1: RA and Dec of the first point in degrees.
+    - ra2, dec2: RA and Dec of the second point in degrees.
+    
+    Returns:
+    - Angular distance in degrees.
+    """
+    
+    coord1 = SkyCoord(ra1*u.deg, dec1*u.deg, frame='icrs')
+    coord2 = SkyCoord(ra2*u.deg, dec2*u.deg, frame='icrs')
 
+    # Compute the angular separation
+    sep = coord1.separation(coord2)
+
+    return sep.deg
+
+def check_coordinate_for_obs_angle(ra, dec, utctime=datetime.utcnow()):
+    """
+    Check if a given coordinate is within the maximum distance from the zenith.
+
+    Parameters
+    ----------
+    ra : float
+        Right ascension of the coordinate in degrees.
+    dec : float
+        Declination of the coordinate in degrees.
+    utctime : datetime.datetime, optional
+        UTC time of the observation. Default is the current UTC time.
+
+    Returns
+    -------
+    bool
+        True if the coordinate is within the maximum distance from the zenith, False otherwise.
+    """
+    above_ra, above_dec = get_abovesky_coordinates(utctime=utctime)
+    above_ra, above_dec = convert_coord_to_degrees(above_ra, above_dec)
+    
+    print(above_ra, above_dec)
+    ra, dec = convert_coord_to_degrees(ra, dec)
+    
+    distance = angular_distance_astropy(ra, dec, above_ra, above_dec)
+    
+    if distance >= settings.MAX_DISTANCE_FROM_ZENITH:
+        return False, distance
+    return True, distance
+    
 
 if __name__ == '__main__':
 #     latitude = float(input("Enter your latitude (degrees, + for North, - for South): "))

@@ -37,5 +37,3 @@ class ObservationPlan(models.Model):
     ra = models.FloatField()
     dec = models.FloatField()
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null = True)
-

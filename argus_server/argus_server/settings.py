@@ -161,3 +161,13 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 SESSION_COOKIE_AGE = 7200  # 30 minutes
 SESSION_SAVE_EVERY_REQUEST = True
+
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+LAT = config['telescope']['latitude']
+LON = config['telescope']['longitude']
+
+MAX_DISTANCE_FROM_ZENITH = float(config['telescope']['max_distance_from_zenith'])
