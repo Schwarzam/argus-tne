@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
 import re
-import math
+import pytz
+import ephem
 
 def _check_units(ra, dec):
-    # Pattern to match: any letter (a-z, A-Z) or "°"
-    # Default unit is degrees, so if no unit, then is assumed as degs. 
-    pattern = r'[a-zA-Z°]'
+    # Pattern to match: any letter (a-z, A-Z), "°", "h"
+    pattern = r'[a-zA-Z°h]'
+    
     def check(input_string):
         # re.search returns a match object if the pattern is found, None otherwise
         if re.search(pattern, input_string):
@@ -15,9 +16,9 @@ def _check_units(ra, dec):
             return False
     
     if not check(ra):
-        ra += '°'
+        ra += 'h'  # default to hours for RA
     if not check(dec):
-        dec += '°'
+        dec += '°'  # default to degrees for Dec
     
     return ra, dec
 
@@ -62,22 +63,51 @@ def get_lst(longitude, utc_now):
 
     return lst
 
-def get_sky_coordinates(latitude, longitude):
+def get_abovesky_coordinates(latitude, longitude, utctime = datetime.utcnow()):
     """
-    Calculate the declination and right ascension of the sky directly above the given latitude and longitude.
+    Calculate the declination and right ascension of the sky directly above the given latitude and longitude using ephem.
     """
-    utc_now = datetime.utcnow()
+    observer = ephem.Observer()
+    observer.lat = str(latitude)
+    observer.lon = str(longitude)
     
-    # Declination is simply the latitude
-    dec = latitude
+    observer.date = utctime  # current time
+    #observer.date = ephem.now()  # current time
+    
+    # RA is just the sidereal time
+    ra_radians = observer.sidereal_time()
+    ra_hours = ra_radians * 12 / 3.141592653589793  # Convert from radians to hours
+    
+    # Dec is just the latitude
+    dec_radians = observer.lat
+    dec_degrees = dec_radians * 180 / 3.141592653589793  # Convert from radians to degrees
 
-    # RA is the LST
-    ra = get_lst(longitude, utc_now)
+    return ra_hours, dec_degrees
 
-    # Convert RA from degrees to hours (1h = 15°)
-    ra_in_hours = ra / 15.0
+def brasilia_to_utc(datetime_str):
+    """
+    Convert datetime in Brasilia time to UTC.
+    
+    Parameters:
+    - datetime_str: Datetime in the format 'YYYY-MM-DD HH:MM:SS'
+    
+    Returns:
+    - UTC datetime object
+    """
+    brasilia_tz = pytz.timezone('America/Sao_Paulo')
+    
+    # Convert the input string to a datetime object
+    dt = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+    
+    # Localize the datetime to Brasilia time
+    localized_dt = brasilia_tz.localize(dt)
+    
+    # Convert to UTC
+    utc_dt = localized_dt.astimezone(pytz.utc)
+    
+    return utc_dt
 
-    return ra_in_hours, dec
+
 
 if __name__ == '__main__':
 #     latitude = float(input("Enter your latitude (degrees, + for North, - for South): "))
@@ -86,8 +116,15 @@ if __name__ == '__main__':
     latitude = -23.550520
     longitude = -46.633308
 
-    ra, dec = get_sky_coordinates(latitude, longitude)
-    print(convert_coord_to_degrees(f"{ra:.2f}h", f"{dec:.2f}"))
+    # Example usage:
+    brt_datetime_str = '2023-10-04 16:30:00'
+    utc_datetime = brasilia_to_utc(brt_datetime_str)
+    print(utc_datetime)
     
-    print(f"Right Ascension (RA): {ra:.2f} hours")
-    print(f"Declination (Dec): {dec:.2f} degrees")
+    ra, dec = get_abovesky_coordinates(latitude, longitude, utc_datetime)
+    print(convert_coord_to_degrees(f"{ra}", f"{dec}"))
+    
+    print(f"Right Ascension (RA): {ra} hours")
+    print(f"Declination (Dec): {dec} degrees")
+
+    
