@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from .decorators import require_keys
 
 ## auxiliares
-from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees
+from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az
 
 ## models
 from .models import ObservationPlan
@@ -36,7 +36,10 @@ def add_coordinate_to_plan(request):
     dec = request.data['dec']
     
     utc_start_date = brasilia_to_utc(start_date.strftime('%Y-%m-%d %H:%M:%S'))
-    allowed, distance = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
+    status = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
+    
+    allowed = status[0]
+    distance = status[1]
     
     if not allowed:
         return Response({
@@ -45,6 +48,9 @@ def add_coordinate_to_plan(request):
             })
     
     ra, dec = convert_coord_to_degrees(ra, dec)
+    
+    #print("aqui", get_alt_az(ra, dec, utctime=utc_start_date))
+    
     obs_plan = ObservationPlan(
         user = request.user,
         name = name,
@@ -64,8 +70,8 @@ def add_coordinate_to_plan(request):
 def fetch_plans(request):
     ## Fetch plans from today only
     plans = ObservationPlan.objects.filter(user=request.user, start_time__date=datetime.now().date())
-    from argus_server.socket import sio
-    sio.emit('message', "aqui")
+    # from argus_server.socket import sio
+    # sio.emit('message', "aqui")
     return Response({"plans": plans.values()})
 
 @api_view(['GET'])
@@ -74,5 +80,28 @@ def above_sky(request):
     ra, dec = get_abovesky_coordinates()
     return Response({"message": f"RA: {ra}, Dec: {dec}"})
 
-def check_if_plan_ok():
-    pass
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('plan_id')
+def check_if_plan_ok(request):
+    plan_id = request.data['plan_id']
+    plan = ObservationPlan.objects.get(id=plan_id)
+    
+    if 'now' in request.data:
+        plan.start_time = datetime.utcnow()
+        
+    status = check_coordinate_for_obs_angle(plan.ra, plan.dec, plan.start_time)
+    
+    allowed = status[0]
+    distance = status[1]
+    
+    if not allowed:
+        return Response({
+                "status": "error",
+                "message": f"Observation angle not allowed. Distance from zenith: {distance}."
+            })
+    
+    return Response({
+            "status": "success",
+            "message": f"Observation angle allowed."
+        })

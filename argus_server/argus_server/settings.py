@@ -122,8 +122,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
-
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -171,3 +170,9 @@ LAT = config['telescope']['latitude']
 LON = config['telescope']['longitude']
 
 MAX_DISTANCE_FROM_ZENITH = float(config['telescope']['max_distance_from_zenith'])
+
+MAX_ZENITH = float(config['telescope']['max_zenith'])
+MIN_ZENITH = float(config['telescope']['min_zenith'])
+
+MAX_AZIMUTH = float(config['telescope']['max_azimuth'])
+MIN_AZIMUTH = float(config['telescope']['min_azimuth'])

@@ -43,6 +43,37 @@ def convert_coord_to_degrees(ra, dec):
     # Return RA and Dec in degrees
     return c.ra.deg, c.dec.deg
 
+def get_alt_az(ra_deg, dec_deg, latitude=settings.LAT, longitude=settings.LON, utctime=datetime.utcnow()):
+    """
+    Calculate the altitude and azimuth for given RA and Dec using the provided observer.
+
+    Parameters:
+    - ra_deg: Right Ascension in degrees.
+    - dec_deg: Declination in degrees.
+    - observer: ephem.Observer object.
+    
+    Returns:
+    - altitude: Altitude in degrees.
+    - azimuth: Azimuth in degrees.
+    """
+
+    # Create a FixedBody for the given RA and Dec
+    target = ephem.FixedBody()
+    target._ra = np.deg2rad(ra_deg)  # Convert RA to radians
+    target._dec = np.deg2rad(dec_deg)  # Convert Dec to radians
+
+    # Create an observer
+    observer = ephem.Observer()
+    observer.lat = str(latitude)
+    observer.lon = str(longitude)
+    observer.date = utctime
+    # Compute the object's position with respect to the observer
+    target.compute(observer)
+
+    # Return altitude and azimuth
+    return float(target.alt) * 180 / np.pi, float(target.az) * 180 / np.pi
+
+
 def get_abovesky_coordinates(latitude=settings.LAT, longitude=settings.LON, utctime=datetime.utcnow()):
     """
     Calculate the right ascension and declination coordinates of the observer.
@@ -75,8 +106,6 @@ def get_abovesky_coordinates(latitude=settings.LAT, longitude=settings.LON, utct
     
     dec_radians = observer.lat
     dec_degrees = dec_radians * 180 / np.pi  # Convert from radians to degrees
-
-    print("above", ra_hours, dec_degrees)
     return ra_degrees, dec_degrees
 
 def brasilia_to_utc(datetime_str):
@@ -143,14 +172,28 @@ def check_coordinate_for_obs_angle(ra, dec, utctime=datetime.utcnow()):
     above_ra, above_dec = get_abovesky_coordinates(utctime=utctime)
     above_ra, above_dec = convert_coord_to_degrees(above_ra, above_dec)
     
-    print(above_ra, above_dec)
     ra, dec = convert_coord_to_degrees(ra, dec)
     
     distance = angular_distance_astropy(ra, dec, above_ra, above_dec)
+    altitude, azimuth = get_alt_az(ra, dec, utctime=utctime)
+    
+    if altitude < settings.MIN_ZENITH or altitude > settings.MAX_ZENITH:
+        return False, distance, altitude, azimuth
+    if azimuth > settings.MAX_AZIMUTH or azimuth < settings.MIN_AZIMUTH:
+        return False, distance, altitude, azimuth
     
     if distance >= settings.MAX_DISTANCE_FROM_ZENITH:
-        return False, distance
-    return True, distance
+        return False, distance, altitude, azimuth
+    return True, distance, altitude, azimuth
+
+
+def execute_observation():
+    """
+    Execute an observation.
+    TODO: implement this function.
+    """
+    pass
+
     
 
 if __name__ == '__main__':

@@ -14,7 +14,6 @@ def require_keys(*required_keys):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             # Assuming you're dealing with a JSON payload
-            print(request.data)
             try:
                 payload = request.json() if hasattr(request, 'json') else request.data
             except ValueError:
