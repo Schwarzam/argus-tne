@@ -64,6 +64,8 @@ def add_coordinate_to_plan(request):
 def fetch_plans(request):
     ## Fetch plans from today only
     plans = ObservationPlan.objects.filter(user=request.user, start_time__date=datetime.now().date())
+    from argus_server.socket import sio
+    sio.emit('message', "aqui")
     return Response({"plans": plans.values()})
 
 @api_view(['GET'])

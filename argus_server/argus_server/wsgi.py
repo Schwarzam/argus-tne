@@ -8,9 +8,17 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 
 import os
+from socketio import Middleware
+from .socket import sio
+
+import eventlet
+import eventlet.wsgi
 
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'argus_server.settings')
 
-application = get_wsgi_application()
+django_app = get_wsgi_application()
+application = Middleware(sio, django_app)
+
+eventlet.wsgi.server(eventlet.listen(('', 8000)), application)

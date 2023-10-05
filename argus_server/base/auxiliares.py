@@ -67,7 +67,6 @@ def get_abovesky_coordinates(latitude=settings.LAT, longitude=settings.LON, utct
     observer.lat = str(latitude)
     observer.lon = str(longitude)
     
-    print(utctime)
     observer.date = utctime
     
     ra_radians = observer.sidereal_time()
