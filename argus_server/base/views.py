@@ -6,7 +6,9 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.response import Response
-
+from django.contrib.auth import get_user_model
+from .models import Reservation
+    
 from .decorators import require_keys
 
 ## auxiliares
@@ -74,6 +76,15 @@ def fetch_plans(request):
     # sio.emit('message', "aqui")
     return Response({"plans": plans.values()})
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('plan_id')
+def delete_plan(request):
+    plan_id = request.data['plan_id']
+    plan = ObservationPlan.objects.get(id=plan_id, user = request.user)
+    plan.delete()
+    return Response({"message": "Plan deleted."})
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def above_sky(request):
@@ -105,3 +116,66 @@ def check_if_plan_ok(request):
             "status": "success",
             "message": f"Observation angle allowed."
         })
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('user_id', 'start_time', 'end_time')
+def reserve_time(request):
+    if not request.user.is_staff:
+        return Response({"message": "Only admins can reserve time."})
+    
+    Users = get_user_model()
+    target_user = Users.objects.get(id=request.data['user_id']).first()
+    
+    start_time = datetime.fromisoformat(request.data['start_time'])
+    end_time = datetime.fromisoformat(request.data['end_time'])
+    
+    reservation = Reservation(
+        user = target_user,
+        start_time = start_time,
+        end_time = end_time
+    )
+    reservation.save()
+    
+    return Response({"message": "Time reserved."})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_reservations(request):
+    if not request.user.is_staff:
+        return Response({"message": "Only admins can get reservations."})
+    
+    ## Get reservations from after now
+    reservations = Reservation.objects.filter(start_time__gte=datetime.utcnow())
+    return Response({"reservations": reservations.values()})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('reservation_id')
+def delete_reservation(request):
+    if not request.user.is_staff:
+        return Response({"message": "Only admins can delete reservations."})
+    
+    reservation_id = request.data['reservation_id']
+    reservation = Reservation.objects.get(id=reservation_id)
+    reservation.delete()
+    
+    return Response({"message": "Reservation deleted."})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_reservation(request):
+    ## Get reservations from after now
+    reservations = Reservation.objects.filter(user=request.user, start_time__gte=datetime.utcnow())
+    return Response({"reservations": reservations.values()})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('plan_id')
+def execute_plan(request):
+    plan = ObservationPlan.objects.get(id=request.data['plan_id'])
+    
+    
+    pass
