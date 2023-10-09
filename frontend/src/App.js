@@ -3,7 +3,7 @@ import Register from "./auth/register";
 import Login from "./auth/login";
 import Logout from "./auth/logout";
 import { io } from "socket.io-client";
-import Stellarium from "./components/Stellarium";
+import ObservationPage from "./components/ObservationPage";
 
 const socket = io('http://localhost:8000', { withCredentials: true });
 
@@ -25,7 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<div></div>} />
-      <Route path="/stellarium" element={<Stellarium />} />
+      <Route path="/observation" element={<ObservationPage />} />
       <Route path="/logout" element={<Logout />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
