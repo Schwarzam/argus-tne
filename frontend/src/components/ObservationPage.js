@@ -3,10 +3,15 @@ import React, { useState, useEffect } from "react";
 import PlanTab from "./PlanTab";
 import Stellarium from "./Stellarium";
 import Plans from "./Plans";
+import info from "../auth/appinfo";
 
 import { PlanContext } from "./PlanContext";
 
 export default function ObservationPage() {
+    useEffect(() => {
+        info.load();
+    });
+
     const [shouldRefetch, setShouldRefetch] = useState(false);
 
     return (

@@ -148,6 +148,11 @@ function Register() {
               Register
             </button>
           </div>
+          <div>
+            <p className='cursor-pointer' onClick={() => navigate("/login")}>
+              Já tem cadastro?
+            </p>
+          </div>
         </form>
       </div>
     </div>

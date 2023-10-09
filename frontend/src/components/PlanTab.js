@@ -6,6 +6,7 @@ import axios from "axios";
 
 import { usePlanContext } from "./PlanContext";
 import { getCookie } from "../auth/cookies";
+import { toast } from "react-toastify";
 
 export default function PlanTab() {
     const [inputValue, setInputValue] = useState("");
@@ -109,6 +110,12 @@ export default function PlanTab() {
     }
 
     const salvarPlano = () => {
+        if (selectedFilters.length === 0 || reducao === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
+            toast.error("Preencha todos os campos")
+            console.log("aqui")
+            return
+        }
+
         const data = {
             name: observationName,
             ra: ra,
@@ -124,6 +131,9 @@ export default function PlanTab() {
                 if (response.data.status == "success"){
                     resetStates();
                     setShouldRefetch(true);
+                    toast.success("Plano salvo com sucesso")
+                }else{
+                    toast.error(response.data.message)
                 }
             })
             .catch((error) => {

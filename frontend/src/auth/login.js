@@ -3,6 +3,9 @@ import { getCookie } from './cookies';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+import info from './appinfo';
+import sio from './socket';
+
 function Login() {
   const [formData, setFormData] = useState({
 	email: '',
@@ -32,6 +35,7 @@ function Login() {
 	
 	await axios.post('/api/auth/login/', formData)
 		.then((res) => {
+				sio.connect();
 				navigate('/');
 			}
 		)
@@ -78,6 +82,11 @@ function Login() {
 			<button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
 			  Log in
 			</button>
+		  </div>
+		  <div>
+			<p className='cursor-pointer' onClick={() => navigate("/register")}>
+				Não tem cadastro?
+			</p>
 		  </div>
 		</form>
 	  </div>

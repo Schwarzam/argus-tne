@@ -105,7 +105,7 @@ def delete_plan(request):
     plan_id = request.data['plan_id']
     plan = ObservationPlan.objects.get(id=plan_id, user = request.user)
     plan.delete()
-    return Response({"message": "Plan deleted."})
+    return Response({"status": "success", "message": "Plan deleted."})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

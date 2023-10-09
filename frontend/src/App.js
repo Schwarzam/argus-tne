@@ -4,23 +4,28 @@ import Login from "./auth/login";
 import Logout from "./auth/logout";
 
 import ObservationPage from "./components/ObservationPage";
+import PrivateRoute from "./PrivateRoute";
+import Home from "./components/Home";
 
 import sio from "./auth/socket";
-import info from "./auth/appinfo";
-
 // info.load();
 sio.connect();
-
-
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<div></div>} />
-      <Route path="/observation" element={<ObservationPage />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/observation" element={
+        <PrivateRoute>
+          <ObservationPage />
+        </PrivateRoute>
+      } />
       <Route path="/logout" element={<Logout />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      
     </Routes>
+
+    
   );
 }

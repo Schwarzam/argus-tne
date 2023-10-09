@@ -16,7 +16,6 @@ class AppInfo {
             })
             .catch(error => {
                 console.log(error);
-                throw error;
             });
         
         return this.loadingPromise;
