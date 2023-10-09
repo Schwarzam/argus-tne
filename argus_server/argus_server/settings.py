@@ -176,3 +176,6 @@ MIN_ZENITH = float(config['telescope']['min_zenith'])
 
 MAX_AZIMUTH = float(config['telescope']['max_azimuth'])
 MIN_AZIMUTH = float(config['telescope']['min_azimuth'])
+
+FILTROS = config['telescope']['filtros'].split(',')
+TIPOS_REDUCAO = config['telescope']['tipos_reducao'].split(',')

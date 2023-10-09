@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import info from "../auth/appinfo";
 /*
 Stellarium is a free and open-source planetarium, 
 licensed under the terms of the GNU General Public License version 2,
@@ -50,6 +50,19 @@ export default function Stellarium() {
 
 function Instructions(){
 
+    const [lat, setLat] = useState(0);
+    const [lon, setLon] = useState(0);
+
+    useEffect(() => {
+        async function getLatLon(){
+            const lat = await info.get('LAT');
+            const lon = await info.get('LON');
+            setLat(lat);
+            setLon(lon);
+        }
+        getLatLon();
+    }, []);
+
     return (
         <div>
             <h3 className="mb-4 font-semibold">Como planejar sua observação.</h3>
@@ -80,7 +93,7 @@ function Instructions(){
                         />
                         <p>Cole as seguintes coordenadas em "Search... " e clique "Enter": </p>
 
-                        <p className="font-bold outline outline-[0.25px] py-2 px-1 text-center rounded-md">-22.9712 -46.9964</p>
+                        <p className="font-bold outline outline-[0.25px] py-2 px-1 text-center rounded-md">{lat} {lon}</p>
                         <p className="mb-3">Depois de inserir as coordenadas e ter teclado enter clique em "Use this location" para aplicar. Cetifique-se de que a localização selecionada está como Valinhos.</p>
 
                         <BlackLine />

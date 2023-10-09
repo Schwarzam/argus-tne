@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import sio from "../auth/socket";
+import info from "../auth/appinfo";
 
 export default function PlanTab() {
     const [inputValue, setInputValue] = useState("");
@@ -10,9 +11,25 @@ export default function PlanTab() {
     const [ra, setRA] = useState("");
     const [dec, setDEC] = useState("");
 
+    const [availableFilters, setAvailableFilters] = useState([]);
+    const [selectedFilters, setSelectedFilters] = useState([]);
+    const [reductionTypes, setReductionTypes] = useState([]); // ["bias", "dark", "flat", "light"
+    const [reducao, setReducao] = useState("");
+
     const [currentObservationStatus, setCurrentObservationStatus] = useState(null); // null for loading, true for OK, false for not OK
     const [futureObservationStatus, setFutureObservationStatus] = useState(null);
 
+    const toggleFilter = (filter) => {
+        setSelectedFilters(prevFilters => {
+            if (prevFilters.includes(filter)) {
+                // Filter is currently selected, remove it from the array
+                return prevFilters.filter(f => f !== filter);
+            } else {
+                // Filter is not selected, add it to the array
+                return [...prevFilters, filter];
+            }
+        });
+    };
 
     useEffect(() => {
         sio.on("message", (message) => {
@@ -28,6 +45,16 @@ export default function PlanTab() {
             console.log(message)
             setFutureObservationStatus(message.allowed);   
         });
+
+        async function getInfo(){
+            const reductionTypes = await info.get('TIPOS_REDUCAO');
+            const filters = await info.get('FILTROS');
+            setReductionTypes(reductionTypes);
+            setAvailableFilters(filters);
+        }
+        getInfo();
+
+  
 
     }, []);
 
@@ -67,6 +94,7 @@ export default function PlanTab() {
 
     return (
         <div className="w-full max-w-lg mx-auto py-6">
+            <h3 className="font-bold text-2xl mb-4">Planejamento de observação</h3>
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Nome da observação:</label>
                 <input
@@ -119,12 +147,43 @@ export default function PlanTab() {
                 <div className="bg-white p-4 border rounded-md shadow-sm relative">
                     <p className="text-gray-700 font-medium">Observação agora:</p>
                     <div className={`absolute top-0 right-0 mt-4 mr-4 w-6 h-6 rounded-full ${currentObservationStatus === null ? 'bg-yellow-400' : currentObservationStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <p className="text-sm">{currentObservationStatus === null ? 'Não aprovado' : currentObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
                 </div>
 
                 <div className="bg-white p-4 border rounded-md shadow-sm relative">
                     <p className="text-gray-700 font-medium">Observação no horário:</p>
                     <div className={`absolute top-0 right-0 mt-4 mr-4 w-6 h-6 rounded-full ${futureObservationStatus === null ? 'bg-yellow-400' : futureObservationStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <p className="text-sm">{futureObservationStatus === null ? 'Não aprovado' : futureObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
                 </div>
+            </div>
+
+            <div className="my-4">
+                <label className="block text-gray-700 font-medium mb-2">Filtros a observar:</label>
+                <div className="flex space-x-2">
+                    {availableFilters.map(filter => (
+                        <button
+                            key={filter}
+                            className={`p-2 ${selectedFilters.includes(filter) ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded-md`}
+                            onClick={() => toggleFilter(filter)}
+                        >
+                            {filter}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="my-4">
+                <label className="block text-gray-700 font-medium mb-2">Tipo de redução:</label>
+                <select 
+                    value={reducao} 
+                    onChange={(e) => setReducao(e.target.value)} 
+                    className="w-full p-2 border rounded-md"
+                >
+                    <option value="">Selecione</option>
+                    {reductionTypes.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                    ))}
+                </select>
             </div>
 
             <div className="text-center w-full grid grid-cols-2 gap-4 mt-4">

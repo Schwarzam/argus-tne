@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from .models import Reservation
     
 from .decorators import require_keys
+from django.conf import settings
 
 ## auxiliares
 from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az
@@ -22,7 +23,17 @@ from .models import ObservationPlan
 def protected_view(request):
     return Response({"message": "This is a protected view."})
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_info(request):
+    info = {}
+    info['LAT'] = settings.LAT
+    info['LON'] = settings.LON
+    info['MAX_DISTANCE_FROM_ZENITH'] = settings.MAX_DISTANCE_FROM_ZENITH
+    info['FILTROS'] = settings.FILTROS
+    info['TIPOS_REDUCAO'] = settings.TIPOS_REDUCAO
+    return Response(info)
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @require_keys('ra', 'dec', 'start_time')

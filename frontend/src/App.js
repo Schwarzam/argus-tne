@@ -6,10 +6,12 @@ import Logout from "./auth/logout";
 import ObservationPage from "./components/ObservationPage";
 
 import sio from "./auth/socket";
+import info from "./auth/appinfo";
 
+// info.load();
 sio.connect();
 
-sio.send("message", "Hello World");
+
 
 export default function App() {
   return (
