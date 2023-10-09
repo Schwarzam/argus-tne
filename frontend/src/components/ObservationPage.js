@@ -8,13 +8,14 @@ import { PlanContext } from "./PlanContext";
 
 export default function ObservationPage() {
     const [shouldRefetch, setShouldRefetch] = useState(false);
-    
+
     return (
         <PlanContext.Provider value={{ shouldRefetch, setShouldRefetch }}>
             <div className="w-[90%] m-auto py-6">
                 <Stellarium />
                 <div className="mt-6 flex">
                     <PlanTab />
+                    <div className="h-[1000px] bg-black w-[1px]"></div>
                     <Plans />
                 </div>
             </div>

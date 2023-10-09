@@ -93,12 +93,22 @@ export default function PlanTab() {
     }
 
     const observar = () => {
-    
+        // TODO: check if the observation is possible
+    }
+
+    const resetStates = () => {
+        setInputValue("");
+        setObservationName("");
+        setStartTime("");
+        setIsValid(true);
+        setRA("");
+        setDEC("");
+        setExptime(10);
+        setSelectedFilters([]);
+        setReducao("");
     }
 
     const salvarPlano = () => {
-        console.log("salvarPlano")    
-
         const data = {
             name: observationName,
             ra: ra,
@@ -111,7 +121,8 @@ export default function PlanTab() {
 
         axios.post("/api/create_plan/", data, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
             .then((response) => {
-                if ("success" in response.data){
+                if (response.data.status == "success"){
+                    resetStates();
                     setShouldRefetch(true);
                 }
             })
@@ -121,7 +132,7 @@ export default function PlanTab() {
     }
 
     return (
-        <div className="w-full max-w-lg mx-auto py-6 px-4 outline outline-[1px] rounded-md">
+        <div className="w-full max-w-lg mx-auto py-6 px-4 rounded-md">
             <h3 className="font-bold text-2xl mb-4">Planejamento de observação</h3>
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Nome da observação:</label>

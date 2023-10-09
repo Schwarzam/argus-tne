@@ -11,7 +11,6 @@ class AppInfo {
 
         this.loadingPromise = axios.get('/api/appinfo/')
             .then(response => {
-                console.log(response.data);
                 this.info = response.data;
                 return response.data;
             })
