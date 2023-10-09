@@ -108,6 +108,9 @@ def get_abovesky_coordinates(latitude=settings.LAT, longitude=settings.LON, utct
     dec_degrees = dec_radians * 180 / np.pi  # Convert from radians to degrees
     return ra_degrees, dec_degrees
 
+def list_to_string(lst):
+    return ', '.join(map(str, lst))
+
 def brasilia_to_utc(datetime_str):
     """
     Convert datetime in Brasilia time to UTC.

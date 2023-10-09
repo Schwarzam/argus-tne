@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 
 import sio from "../auth/socket";
 import info from "../auth/appinfo";
+import axios from "axios";
+
+import { usePlanContext } from "./PlanContext";
+import { getCookie } from "../auth/cookies";
 
 export default function PlanTab() {
     const [inputValue, setInputValue] = useState("");
@@ -11,6 +15,8 @@ export default function PlanTab() {
     const [ra, setRA] = useState("");
     const [dec, setDEC] = useState("");
 
+    const [exptime, setExptime] = useState(0);
+
     const [availableFilters, setAvailableFilters] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState([]);
     const [reductionTypes, setReductionTypes] = useState([]); // ["bias", "dark", "flat", "light"
@@ -18,6 +24,8 @@ export default function PlanTab() {
 
     const [currentObservationStatus, setCurrentObservationStatus] = useState(null); // null for loading, true for OK, false for not OK
     const [futureObservationStatus, setFutureObservationStatus] = useState(null);
+
+    const { setShouldRefetch } = usePlanContext();
 
     const toggleFilter = (filter) => {
         setSelectedFilters(prevFilters => {
@@ -90,10 +98,30 @@ export default function PlanTab() {
 
     const salvarPlano = () => {
         console.log("salvarPlano")    
+
+        const data = {
+            name: observationName,
+            ra: ra,
+            dec: dec,
+            filters: selectedFilters,
+            reduction: reducao,
+            exptime: exptime,
+            date: startTime
+        }
+
+        axios.post("/api/create_plan/", data, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
+            .then((response) => {
+                if ("success" in response.data){
+                    setShouldRefetch(true);
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 
     return (
-        <div className="w-full max-w-lg mx-auto py-6">
+        <div className="w-full max-w-lg mx-auto py-6 px-4 outline outline-[1px] rounded-md">
             <h3 className="font-bold text-2xl mb-4">Planejamento de observação</h3>
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Nome da observação:</label>
@@ -158,12 +186,23 @@ export default function PlanTab() {
             </div>
 
             <div className="my-4">
+                <label className="block text-gray-700 font-medium mb-2">Tempo de exposição (segundos):</label>
+                <input
+                    type="number"
+                    value={exptime}
+                    onChange={(e) => setExptime(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Digite o nome..."
+                />
+            </div>
+
+            <div className="my-4">
                 <label className="block text-gray-700 font-medium mb-2">Filtros a observar:</label>
                 <div className="flex space-x-2">
                     {availableFilters.map(filter => (
                         <button
                             key={filter}
-                            className={`p-2 ${selectedFilters.includes(filter) ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded-md`}
+                            className={`p-2 ${selectedFilters.includes(filter) ? 'bg-quaternary text-white' : 'bg-gray-200'} rounded-md`}
                             onClick={() => toggleFilter(filter)}
                         >
                             {filter}

@@ -56,4 +56,7 @@ class ObservationPlan(models.Model):
     name = models.CharField(max_length=100, null=True)
     ra = models.FloatField()
     dec = models.FloatField()
+    filters = models.CharField(max_length=40)
+    reduction = models.CharField(max_length=40)
+    exptime = models.IntegerField()
     start_time = models.DateTimeField()

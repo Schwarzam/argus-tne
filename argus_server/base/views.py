@@ -13,7 +13,7 @@ from .decorators import require_keys
 from django.conf import settings
 
 ## auxiliares
-from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az
+from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string
 
 ## models
 from .models import ObservationPlan
@@ -36,10 +36,13 @@ def get_info(request):
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@require_keys('ra', 'dec', 'start_time')
+@require_keys('ra', 'dec', 'date', 'filters', 'reduction', 'exptime')
 def add_coordinate_to_plan(request):
-    try: start_date = datetime.fromisoformat(request.data['start_time'])
-    except: return Response({"message": "Invalid date format. Must be ISO 8601."})
+    try:
+        date = request.data['date'] 
+        start_date = datetime.strptime(date, '%Y-%m-%dT%H:%M')
+    except: 
+        return Response({"message": "Invalid date format. Must be ISO 8601."})
     
     name = None
     if 'name' in request.data:
@@ -48,6 +51,11 @@ def add_coordinate_to_plan(request):
     ra = request.data['ra']
     dec = request.data['dec']
     
+    filters = list_to_string(request.data['filters'])
+    reduction = request.data['reduction']
+    date = request.data['date']
+    exptime = request.data['exptime']
+  
     utc_start_date = brasilia_to_utc(start_date.strftime('%Y-%m-%d %H:%M:%S'))
     status = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
     
@@ -69,6 +77,9 @@ def add_coordinate_to_plan(request):
         name = name,
         ra = ra,
         dec = dec,
+        filters = filters,
+        reduction = reduction,
+        exptime = exptime,
         start_time = start_date,
     )
     obs_plan.save()
@@ -85,7 +96,7 @@ def fetch_plans(request):
     plans = ObservationPlan.objects.filter(user=request.user, start_time__date=datetime.now().date())
     # from argus_server.socket import sio
     # sio.emit('message', "aqui")
-    return Response({"plans": plans.values()})
+    return Response(plans.values())
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
