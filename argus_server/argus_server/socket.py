@@ -1,6 +1,10 @@
 import socketio
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
+from datetime import datetime
+import json
+
+from base.auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle
 
 sio = socketio.Server(cors_allowed_origins="*")
 
@@ -40,6 +44,33 @@ def connect(sid, environ):
 @sio.event
 def message(sid, data):
     print('message:', data)
+
+@sio.event
+def checkcoord(sid, data):
+    try:
+        ra = data['ra']
+        dec = data['dec']
+        status = check_coordinate_for_obs_angle(ra, dec)
+        allowed = status[0]
+        distance = status[1]
+        sio.emit('coordchecked', {'allowed': allowed, 'distance': distance}, room=sid)
+    except:
+        sio.emit('coordcheckedondate', {'allowed': False, 'distance': 0}, room=sid)
+
+@sio.event
+def checkcoordondate(sid, data):
+    try:
+        ra = data['ra']
+        dec = data['dec']
+        date = data['date']
+        date_obj = datetime.strptime(date, '%Y-%m-%dT%H:%M')
+        utc_start_date = brasilia_to_utc(date_obj.strftime('%Y-%m-%d %H:%M:%S'))
+        status = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
+        allowed = status[0]
+        distance = status[1]
+        sio.emit('coordcheckedondate', {'allowed': allowed, 'distance': distance}, room=sid)
+    except:
+        sio.emit('coordcheckedondate', {'allowed': False, 'distance': 0}, room=sid)
 
 @sio.event
 def disconnect(sid):

@@ -11,7 +11,7 @@ export default function Stellarium() {
 
 
     return (
-        <div className="w-[80%] m-auto p-5 border rounded-md shadow-md relative">
+        <div className="p-5 border rounded-md shadow-md relative">
             <h2 className="text-center mb-4 text-xl font-semibold">Stellarium</h2>
             
             <div className="relative mb-4">
