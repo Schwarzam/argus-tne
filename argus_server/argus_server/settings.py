@@ -179,3 +179,5 @@ MIN_AZIMUTH = float(config['telescope']['min_azimuth'])
 
 FILTROS = config['telescope']['filtros'].split(',')
 TIPOS_REDUCAO = config['telescope']['tipos_reducao'].split(',')
+
+TEMPO_MAXIMO = int(config['telescope']['tempo_maximo_reserva'])

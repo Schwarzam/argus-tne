@@ -16,7 +16,7 @@ export default function Home() {
       </div>
       <div className="grid gap-4 md:flex md:space-x-4">
         <ActionBox title="Observar!" onAction={() => navigate("/observation")} />
-        <ActionBox title="Admin Access" onAction={() => navigate("/admin")} />
+        <ActionBox title="Admin" onAction={() => navigate("/admin")} />
       </div>
     </div>
   );
@@ -25,7 +25,7 @@ export default function Home() {
 const ActionBox = ({ title, onAction }) => (
   <div 
     onClick={onAction} 
-    className="w-64 p-6 text-xl font-semibold text-center text-white cursor-pointer bg-blue-600 rounded-md shadow-md hover:bg-blue-700"
+    className="w-64 p-6 text-xl font-semibold text-center text-white cursor-pointer bg-primary rounded-md shadow-md hover:bg-secondary"
   >
     {title}
   </div>

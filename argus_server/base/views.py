@@ -142,16 +142,22 @@ def check_if_plan_ok(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@require_keys('user_id', 'start_time', 'end_time')
+@require_keys('user_email', 'start_time', 'end_time')
 def reserve_time(request):
     if not request.user.is_staff:
-        return Response({"message": "Only admins can reserve time."})
+        return Response({"message": "Only admins can reserve time."}, status=401)
     
     Users = get_user_model()
-    target_user = Users.objects.get(id=request.data['user_id']).first()
+    target_user = Users.objects.get(email=request.data['user_email'])
     
-    start_time = datetime.fromisoformat(request.data['start_time'])
-    end_time = datetime.fromisoformat(request.data['end_time'])
+    start_time = datetime.strptime(request.data['start_time'], '%Y-%m-%dT%H:%M')
+    end_time = datetime.strptime(request.data['end_time'], '%Y-%m-%dT%H:%M')
+    
+    if end_time < start_time:
+        return Response({"message": "End time must be after start time."}, status=400)
+    
+    if (end_time - start_time).total_seconds() > settings.TEMPO_MAXIMO*60*60:
+        return Response({"message": "Time reserved must be 5 hours or less."}, status=400)
     
     reservation = Reservation(
         user = target_user,
@@ -166,11 +172,23 @@ def reserve_time(request):
 @permission_classes([IsAuthenticated])
 def get_reservations(request):
     if not request.user.is_staff:
-        return Response({"message": "Only admins can get reservations."})
+        return Response({"message": "Only admins can get reservations."}, status=401)
     
-    ## Get reservations from after now
-    reservations = Reservation.objects.filter(start_time__gte=datetime.utcnow())
-    return Response({"reservations": reservations.values()})
+    
+    ## Get reservations from after now in date order
+    reservations = Reservation.objects.filter(start_time__gte=datetime.utcnow()).order_by('start_time')
+
+    reservs = []
+    for reservation in reservations:
+        reservs.append({
+            "id": reservation.id,
+            "user": reservation.user.email,
+            "username": reservation.user.username,
+            "start_time": reservation.start_time,
+            "end_time": reservation.end_time,
+        })
+    
+    return Response({"reservations": reservs})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -184,6 +202,18 @@ def delete_reservation(request):
     reservation.delete()
     
     return Response({"message": "Reservation deleted."})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_users_emails(request):
+    if not request.user.is_staff:
+        return Response({"message": "Only admins can get all users emails."})
+    
+    Users = get_user_model()
+    users = Users.objects.all()
+    emails = [user.email for user in users]
+    
+    return Response({"emails": emails})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

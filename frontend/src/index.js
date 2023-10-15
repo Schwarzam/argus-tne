@@ -8,6 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import App from "./App";
+import Inicio from "./components/Inicio";
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -15,6 +16,8 @@ const root = createRoot(rootElement);
 root.render(
   <StrictMode>
     <BrowserRouter>
+      
+      <Inicio />
       <App />
 
       <ToastContainer 
