@@ -12,6 +12,17 @@ export default function Admin() {
     const [users, setUsers] = useState([]);
     const [reservations, setReservations] = useState([]);
 
+    const deleteReservation = (id) => {
+        axios.post('/api/delete_reservation/', {reservation_id: id}, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
+            .then(res => {
+                toast.success(res.data.message);
+                getReservations();
+            })
+            .catch(err => {
+                toast.error(err.response.data.message);
+            });
+    }
+
     const reserveTime = (data) => {
         axios.post('/api/reserve_time/', {user_email: data.query, start_time: data.startDate, end_time: data.endDate}, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
             .then(res => {
@@ -61,19 +72,20 @@ export default function Admin() {
         <h1 className='font-bold text-3xl mb-10'>Painel Administrador</h1>
         <SearchAndDateComponent suggestions={users} onSubmit={reserveTime} />
 
-        <ReservationsComponent reservations={reservations} />
+        <ReservationsComponent reservations={reservations} deleteReservation={deleteReservation} />
         </div>
     );
 }
 
-const ReservationsComponent = ({ reservations }) => {
+const ReservationsComponent = ({ reservations, deleteReservation }) => {
     return (
-      <div className="p-4">
-        <h2 className="text-2xl font-semibold mb-4">Reservas</h2>
+      <div className="p-4 mt-10">
+        <h2 className="text-2xl font-semibold mb-4 text-center">Reservas</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {reservations.map((reservation) => (
-            <div key={reservation.id} className="bg-white p-4 rounded shadow-md">
+            <div key={reservation.id} className="bg-white p-4 rounded shadow-md relative">
               <h3 className="text-lg font-medium mb-2">Reserva ID: {reservation.id}</h3>
+              <button onClick={() => deleteReservation(reservation.id)} className='absolute right-4 top-2 bg-red-500 rounded-lg px-2 py-2'>Delete</button>
               <p><span className="font-semibold">Email:</span> {reservation.user}</p>
               <p><span className="font-semibold">Nome:</span> {reservation.username}</p>
               <p><span className="font-semibold">Inicio:</span> {new Date(reservation.start_time).toLocaleString()}</p>
@@ -158,7 +170,7 @@ const SearchAndDateComponent = ({ suggestions, onSubmit }) => {
           />
         </div>
         <button type="submit" className="p-2 bg-blue-500 text-white rounded">
-          Submit
+          Reservar
         </button>
       </form>
     );
