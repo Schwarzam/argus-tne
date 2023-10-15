@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+import sio from './socket';
+
 function Register() {
   const [formData, setFormData] = useState({
     email: '',
@@ -43,7 +45,8 @@ function Register() {
 
     await axios.post('/api/auth/register/', formData)
     .then((res) => {
-
+        sio.connect();
+        navigate('/');
         }
     ).catch((err) => {
             if (err.response.status === 500){

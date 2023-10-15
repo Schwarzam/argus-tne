@@ -40,6 +40,9 @@ function Login() {
 			}
 		)
 		.catch((err) => {
+			if (err.response.status === 403){
+				navigate('/');
+			}
 			console.log('Error: ', err.response);
 			setErrors(err.response.data);
 			}
