@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'tailwindcss/tailwind.css';
 
+import info from '../auth/appinfo';
+
 export default function Home() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("Loading app info")
+    info.syncLoad();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">

@@ -50,7 +50,6 @@ export default function Admin() {
     const getEmails = () => {
         axios.get('/api/get_all_users_emails')
             .then(res => {
-                console.log(res.data);
                 if (res.data.emails){
                     setUsers(res.data.emails);
                 }

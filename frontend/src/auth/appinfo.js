@@ -12,6 +12,7 @@ class AppInfo {
         this.loadingPromise = axios.get('/api/appinfo/')
             .then(response => {
                 this.info = response.data;
+                console.log("App info loaded")
                 return response.data;
             })
             .catch(error => {
@@ -19,6 +20,18 @@ class AppInfo {
             });
         
         return this.loadingPromise;
+    }
+
+    syncLoad() {
+        axios.get('/api/appinfo/')
+        .then(response => {
+            this.info = response.data;
+            console.log("App info loaded")
+            return response.data;
+        })
+        .catch(error => {
+            console.log(error);
+        });
     }
 
     async get(key) {

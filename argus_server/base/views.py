@@ -86,7 +86,8 @@ def add_coordinate_to_plan(request):
     
     return Response({
             "status": "success",
-            "message": f"Observation added to plan."
+            "message": f"Observation added to plan.",
+            "id": obs_plan.id
         })
 
 @api_view(['GET'])
@@ -138,7 +139,6 @@ def check_if_plan_ok(request):
             "status": "success",
             "message": f"Observation angle allowed."
         })
-    
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -231,3 +231,4 @@ def execute_plan(request):
     
     
     pass
+

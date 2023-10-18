@@ -9,7 +9,7 @@ import { PlanContext } from "./PlanContext";
 
 export default function ObservationPage() {
     useEffect(() => {
-        info.load();
+        info.syncLoad();
     }, []);
 
     const [shouldRefetch, setShouldRefetch] = useState(false);

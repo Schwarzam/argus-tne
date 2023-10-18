@@ -11,8 +11,8 @@ urlpatterns = [
     path('get_reservations/', views.get_reservations, name='get_reservations'),
     path('reserve_time/', views.reserve_time, name='reserve_time'),
     path('delete_reservation/', views.delete_reservation, name='delete_reservation'),
-    path('get_all_users_emails', views.get_all_users_emails, name='get_all_users_emails'),
-    path('check_user_reservation', views.check_user_reservation, name='check_user_reservation'),
+    path('get_all_users_emails/', views.get_all_users_emails, name='get_all_users_emails'),
+    path('check_user_reservation/', views.check_user_reservation, name='check_user_reservation'),
     
     path('create_plan/', add_coordinate_to_plan, name='add_coordinate_to_plan'),
     path('delete_plan/', delete_plan, name='delete_plan'),

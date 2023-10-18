@@ -16,12 +16,12 @@ export default function PlanTab() {
     const [ra, setRA] = useState("");
     const [dec, setDEC] = useState("");
 
-    const [exptime, setExptime] = useState(0);
+    const [exptime, setExptime] = useState(10);
 
     const [availableFilters, setAvailableFilters] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState([]);
     const [reductionTypes, setReductionTypes] = useState([]); // ["bias", "dark", "flat", "light"
-    const [reducao, setReducao] = useState("");
+    const [reducao, setReducao] = useState("Flat-Field");
 
     const [currentObservationStatus, setCurrentObservationStatus] = useState(null); // null for loading, true for OK, false for not OK
     const [futureObservationStatus, setFutureObservationStatus] = useState(null);
@@ -94,7 +94,28 @@ export default function PlanTab() {
     }
 
     const observar = () => {
-        // TODO: check if the observation is possible
+        if (selectedFilters.length === 0 || reducao === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
+            toast.error("Preencha todos os campos")
+            console.log("aqui")
+            return
+        }
+
+        if (!currentObservationStatus){
+            toast.error("Nao aprovado para observacao.")
+            return
+        }
+
+        const data = {
+            name: observationName,
+            ra: ra,
+            dec: dec,
+            filters: selectedFilters,
+            reduction: reducao,
+            exptime: exptime,
+            date: startTime
+        }
+        // TODO: Create route to send data to the backend
+
     }
 
     const resetStates = () => {
@@ -113,6 +134,11 @@ export default function PlanTab() {
         if (selectedFilters.length === 0 || reducao === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
             toast.error("Preencha todos os campos")
             console.log("aqui")
+            return
+        }
+
+        if (!futureObservationStatus){
+            toast.error("Plano nao aprovado.")
             return
         }
 
