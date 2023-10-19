@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+import os
 import re
 import pytz
 import ephem
@@ -235,32 +236,14 @@ def check_coordinate_for_obs_angle(ra, dec, utctime=datetime.utcnow()):
         return False, distance, altitude, azimuth
     return True, distance, altitude, azimuth
 
-
-def execute_observation():
+def files_in_directory(directory):
     """
-    Execute an observation.
-    TODO: implement this function.
+    Returns a list of file names in the specified directory.
+
+    Args:
+        directory (str): The path of the directory to search for files.
+
+    Returns:
+        list: A list of file names in the specified directory.
     """
-    pass
-
-    
-
-if __name__ == '__main__':
-#     latitude = float(input("Enter your latitude (degrees, + for North, - for South): "))
-#     longitude = float(input("Enter your longitude (degrees, + for East, - for West): "))
-
-    latitude = -23.550520
-    longitude = -46.633308
-
-    # Example usage:
-    brt_datetime_str = '2023-10-04 16:30:00'
-    utc_datetime = brasilia_to_utc(brt_datetime_str)
-    print(utc_datetime)
-    
-    ra, dec = get_abovesky_coordinates(latitude, longitude, utc_datetime)
-    print(convert_coord_to_degrees(f"{ra}", f"{dec}"))
-    
-    print(f"Right Ascension (RA): {ra} hours")
-    print(f"Declination (Dec): {dec} degrees")
-
-    
+    return [name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))]

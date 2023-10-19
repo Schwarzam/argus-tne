@@ -11,6 +11,7 @@ class Telescope(models.Model):
     alt = models.FloatField(null = True)
     az = models.FloatField(null = True)
     operation = models.TextField(null = True)
+    executing_plan_id = models.BigIntegerField(null = True)
 
 class Queue(models.Model):
     user = models.ForeignKey(

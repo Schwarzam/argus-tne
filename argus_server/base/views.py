@@ -9,10 +9,12 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
 from base.executeobs import create_instructions_from_plan
-from .models import Reservation
+from .models import Reservation, Telescope
     
 from .decorators import require_keys
 from django.conf import settings
+
+import os
 
 ## auxiliares
 from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, utc_to_brasilia
@@ -20,7 +22,7 @@ from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_p
 ## models
 from .models import ObservationPlan
 
-import base.backgroundtask
+import base.backgroundtask ## Just to start the background task is running
 
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
@@ -232,8 +234,22 @@ def execute_plan(request):
     plan = ObservationPlan.objects.get(id=request.data['plan_id'])
     
     instructions = create_instructions_from_plan(plan.id)
+    instruction_name = str(plan.id).zfill(8)
     
-    print(instructions)
+    instructions_path = os.path.join(settings.ORCHESTRATE_FOLDER, instruction_name + ".txt")
+    with open(instructions_path, 'w') as f:
+        f.write(instructions)
+        
+    # TODO: Executar lógica backgoundtask.py
+    """
+    Verificar se o telescópio está livre.....
+    """
+    from django.db import transaction
+    with transaction.atomic():
+        try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
+        except: return Response({"status": "error", "message": "Telescope is busy."})
+    
+    telescope.update(status='busy', operation=instructions)
     
     return Response({"status": "success", "message": "Plan executed."})
 

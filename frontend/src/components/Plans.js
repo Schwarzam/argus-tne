@@ -65,8 +65,19 @@ export default function Plans() {
     };
 
     const observar = (plan_id) => {
-        console.log(plan_id)
-        // TODO: check if the observation is possible
+        axios.post("/api/execute_plan/", { plan_id }, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
+            .then((response) => {
+                if (response.data.status === "success"){
+                    toast.success("Observação iniciada com sucesso!")
+                    // resetStates();
+                    setShouldRefetch(true);
+                }else{
+                    toast.error(response.data.message)
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 
     return (
@@ -78,17 +89,18 @@ export default function Plans() {
                 {plans.toReversed().map(plan => (
                     <div key={plan.id} className="bg-white shadow rounded-lg p-6 mb-4">
                         <h2 className="text-2xl font-semibold mb-2">{plan.name}</h2>
+
+                        <div className="bg-white p-4 border rounded-md shadow-sm">
+                            <p className="text-gray-700 font-medium">RA  DEC:</p>
+                            <div className="text-gray-900 mt-2">
+                                {Number((plan.ra).toFixed(5))}
+                                &nbsp;&nbsp;
+                                {Number((plan.dec).toFixed(5))}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
 
-                            <div className="bg-white p-4 border rounded-md shadow-sm">
-                                <p className="text-gray-700 font-medium">RA:</p>
-                                <p className="text-gray-900 mt-2">{plan.ra}</p>
-                            </div>
-
-                            <div className="bg-white p-4 border rounded-md shadow-sm">
-                                <p className="text-gray-700 font-medium">DEC:</p>
-                                <p className="text-gray-900 mt-2">{plan.dec}</p>
-                            </div>
                             
                             <p><span className="font-medium">Filtros:</span> {plan.filters}</p>
                             <p><span className="font-medium">Redução:</span> {plan.reduction}</p>
