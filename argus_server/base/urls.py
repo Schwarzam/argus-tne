@@ -19,4 +19,5 @@ urlpatterns = [
     path('above_sky/', above_sky, name='above_sky'),
     path('fetch_plans/', fetch_plans, name='fetch_plans'),
     path('check_if_plan_ok/', check_if_plan_ok, name='check_if_plan_ok'),
+    path('execute_plan/', views.execute_plan, name='execute_plan'),
 ]

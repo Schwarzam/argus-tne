@@ -21,7 +21,7 @@ export default function PlanTab() {
     const [availableFilters, setAvailableFilters] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState([]);
     const [reductionTypes, setReductionTypes] = useState([]); // ["bias", "dark", "flat", "light"
-    const [reducao, setReducao] = useState("Flat-Field");
+    const [frameMode, setFrame] = useState("Flat-Field");
 
     const [currentObservationStatus, setCurrentObservationStatus] = useState(null); // null for loading, true for OK, false for not OK
     const [futureObservationStatus, setFutureObservationStatus] = useState(null);
@@ -56,15 +56,12 @@ export default function PlanTab() {
         });
 
         async function getInfo(){
-            const reductionTypes = await info.get('TIPOS_REDUCAO');
+            const reductionTypes = await info.get('TIPOS_FRAME');
             const filters = await info.get('FILTROS');
             setReductionTypes(reductionTypes);
             setAvailableFilters(filters);
         }
         getInfo();
-
-  
-
     }, []);
 
 
@@ -93,29 +90,20 @@ export default function PlanTab() {
         sio.send("checkcoordondate", {ra: ra, dec: dec, date: value});
     }
 
-    const observar = () => {
-        if (selectedFilters.length === 0 || reducao === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
-            toast.error("Preencha todos os campos")
-            console.log("aqui")
-            return
-        }
-
-        if (!currentObservationStatus){
-            toast.error("Nao aprovado para observacao.")
-            return
-        }
-
-        const data = {
-            name: observationName,
-            ra: ra,
-            dec: dec,
-            filters: selectedFilters,
-            reduction: reducao,
-            exptime: exptime,
-            date: startTime
-        }
-        // TODO: Create route to send data to the backend
-
+    const observar = (plan_id) => {
+        axios.post("/api/execute_plan/", { plan_id }, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
+            .then((response) => {
+                if (response.data.status === "success"){
+                    toast.success("Observação iniciada com sucesso!")
+                    // resetStates();
+                    setShouldRefetch(true);
+                }else{
+                    toast.error(response.data.message)
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
 
     const resetStates = () => {
@@ -127,11 +115,13 @@ export default function PlanTab() {
         setDEC("");
         setExptime(10);
         setSelectedFilters([]);
-        setReducao("");
+        setFrame("");
+        setCurrentObservationStatus(null);
+        setFutureObservationStatus(null);
     }
 
-    const salvarPlano = () => {
-        if (selectedFilters.length === 0 || reducao === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
+    const salvarPlano = (observarnow=false) => {
+        if (selectedFilters.length === 0 || frameMode === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
             toast.error("Preencha todos os campos")
             console.log("aqui")
             return
@@ -142,22 +132,32 @@ export default function PlanTab() {
             return
         }
 
+        if (observarnow && !currentObservationStatus){
+            toast.error("Plano nao aprovado para observação agora.")
+            return
+        }
+
         const data = {
             name: observationName,
             ra: ra,
             dec: dec,
             filters: selectedFilters,
-            reduction: reducao,
+            framemode: frameMode,
             exptime: exptime,
             date: startTime
         }
 
         axios.post("/api/create_plan/", data, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
             .then((response) => {
-                if (response.data.status == "success"){
+                if (response.data.status === "success"){
+                    if (observarnow){
+                        observar(response.data.plan_id)
+                    }
+
                     resetStates();
                     setShouldRefetch(true);
                     toast.success("Plano salvo com sucesso")
+                    
                 }else{
                     toast.error(response.data.message)
                 }
@@ -259,10 +259,10 @@ export default function PlanTab() {
             </div>
 
             <div className="my-4">
-                <label className="block text-gray-700 font-medium mb-2">Tipo de redução:</label>
+                <label className="block text-gray-700 font-medium mb-2">Tipo de frame:</label>
                 <select 
-                    value={reducao} 
-                    onChange={(e) => setReducao(e.target.value)} 
+                    value={frameMode} 
+                    onChange={(e) => setFrame(e.target.value)} 
                     className="w-full p-2 border rounded-md"
                 >
                     <option value="">Selecione</option>
@@ -273,7 +273,7 @@ export default function PlanTab() {
             </div>
 
             <div className="text-center w-full grid grid-cols-2 gap-4 mt-4">
-                <button onClick={() => observar()} className={`${currentObservationStatus === null ? 'bg-yellow-400' : currentObservationStatus ? 'bg-green-500' : 'bg-red-500'} w-full text-white px-3 py-2 rounded-md transition`}>Observar</button>
+                <button onClick={() => salvarPlano(true)} className={`${currentObservationStatus === null ? 'bg-yellow-400' : currentObservationStatus ? 'bg-green-500' : 'bg-red-500'} w-full text-white px-3 py-2 rounded-md transition`}>Salvar e Observar agora</button>
                 <button onClick={() => salvarPlano()} className={`${currentObservationStatus === null ? 'bg-yellow-400' : futureObservationStatus ? 'bg-green-500' : 'bg-red-500'} w-full text-white px-3 py-2 rounded-md transition`}>Salvar Plano</button>
             </div>
         </div>

@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-j8r*w-xtbwhe6$w0!06zi=uq44zbf-lx44_mv#nqzf!ac9u!+5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -178,6 +178,18 @@ MAX_AZIMUTH = float(config['telescope']['max_azimuth'])
 MIN_AZIMUTH = float(config['telescope']['min_azimuth'])
 
 FILTROS = config['telescope']['filtros'].split(',')
-TIPOS_REDUCAO = config['telescope']['tipos_reducao'].split(',')
+TIPOS_FRAME = config['telescope']['tipos_frame'].split(',')
 
 TEMPO_MAXIMO = int(config['telescope']['tempo_maximo_reserva'])
+
+DB_NAME = config['telescope']['db_name']
+
+ORCHESTRATE_FOLDER = str(config['telescope']['orchestrate_folder'])
+IMAGES_FOLDER = config['telescope']['images_folder']
+
+TEMPO_FILTRO = float(config['telescope']['tempo_espera_apos_filtro'])
+TEMPO_FRAME = float(config['telescope']['tempo_espera_entre_frames'])
+TEMPO_DESLIZE = float(config['telescope']['tempo_espera_apos_deslizar'])
+
+assert os.path.exists(ORCHESTRATE_FOLDER), f"Orchestrate folder ({ORCHESTRATE_FOLDER}) does not exist"
+assert os.path.exists(IMAGES_FOLDER), f"Images folder ({IMAGES_FOLDER}) does not exist"

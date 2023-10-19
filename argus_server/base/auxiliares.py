@@ -43,6 +43,28 @@ def convert_coord_to_degrees(ra, dec):
     # Return RA and Dec in degrees
     return c.ra.deg, c.dec.deg
 
+def check_plan_ok(plan, now=False):
+    """
+    Check if a given observation plan is valid.
+
+    Args:
+        plan (ObservationPlan): The observation plan to check.
+        now (bool, optional): Whether to set the start time to the current UTC time. Defaults to False.
+
+    Returns:
+        Tuple[bool, float, float, float]: A tuple containing the following values:
+            - allowed (bool): Whether the observation is allowed.
+            - distance (float): The distance between the target and the observer.
+            - altitude (float): The altitude of the target.
+            - azimuth (float): The azimuth of the target.
+    """
+    if now:
+        plan.start_time = datetime.utcnow()
+        
+    allowed, distance, altitude, azimuth = check_coordinate_for_obs_angle(plan.ra, plan.dec, plan.start_time)
+    
+    return allowed, distance, altitude, azimuth
+
 def get_alt_az(ra_deg, dec_deg, latitude=settings.LAT, longitude=settings.LON, utctime=datetime.utcnow()):
     """
     Calculate the altitude and azimuth for given RA and Dec using the provided observer.
@@ -133,6 +155,30 @@ def brasilia_to_utc(datetime_str):
     utc_dt = localized_dt.astimezone(pytz.utc)
     
     return utc_dt
+
+def utc_to_brasilia(datetime_str):
+    """
+    Convert datetime in UTC to Brasilia time.
+    
+    Parameters:
+    - datetime_str: Datetime in the format 'YYYY-MM-DD HH:MM:SS'
+    
+    Returns:
+    - Brasilia datetime object
+    """
+    utc_tz = pytz.utc
+    brasilia_tz = pytz.timezone('America/Sao_Paulo')
+    
+    # Convert the input string to a datetime object
+    dt = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+    
+    # Localize the datetime to UTC
+    localized_dt = utc_tz.localize(dt)
+    
+    # Convert to Brasilia time
+    brasilia_dt = localized_dt.astimezone(brasilia_tz)
+    
+    return brasilia_dt
 
 def angular_distance_astropy(ra1, dec1, ra2, dec2):
     """

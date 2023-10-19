@@ -7,16 +7,20 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+
+from base.executeobs import create_instructions_from_plan
 from .models import Reservation
     
 from .decorators import require_keys
 from django.conf import settings
 
 ## auxiliares
-from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string
+from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, utc_to_brasilia
 
 ## models
 from .models import ObservationPlan
+
+import base.backgroundtask
 
 @api_view(['GET'])
 #@permission_classes([IsAuthenticated])
@@ -31,12 +35,12 @@ def get_info(request):
     info['LON'] = settings.LON
     info['MAX_DISTANCE_FROM_ZENITH'] = settings.MAX_DISTANCE_FROM_ZENITH
     info['FILTROS'] = settings.FILTROS
-    info['TIPOS_REDUCAO'] = settings.TIPOS_REDUCAO
+    info['TIPOS_FRAME'] = settings.TIPOS_FRAME
     return Response(info)
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@require_keys('ra', 'dec', 'date', 'filters', 'reduction', 'exptime')
+@require_keys('ra', 'dec', 'date', 'filters', 'framemode', 'exptime')
 def add_coordinate_to_plan(request):
     try:
         date = request.data['date'] 
@@ -52,7 +56,7 @@ def add_coordinate_to_plan(request):
     dec = request.data['dec']
     
     filters = list_to_string(request.data['filters'])
-    reduction = request.data['reduction']
+    framemode = request.data['framemode']
     date = request.data['date']
     exptime = request.data['exptime']
   
@@ -78,7 +82,7 @@ def add_coordinate_to_plan(request):
         ra = ra,
         dec = dec,
         filters = filters,
-        reduction = reduction,
+        framemode = framemode,
         exptime = exptime,
         start_time = start_date,
     )
@@ -87,14 +91,15 @@ def add_coordinate_to_plan(request):
     return Response({
             "status": "success",
             "message": f"Observation added to plan.",
-            "id": obs_plan.id
+            "plan_id": obs_plan.id
         })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetch_plans(request):
     ## Fetch plans from today only
-    plans = ObservationPlan.objects.filter(user=request.user, start_time__date=datetime.now().date())
+    time = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+    plans = ObservationPlan.objects.filter(user=request.user, start_time__date=time)
     # from argus_server.socket import sio
     # sio.emit('message', "aqui")
     return Response(plans.values())
@@ -121,13 +126,10 @@ def check_if_plan_ok(request):
     plan_id = request.data['plan_id']
     plan = ObservationPlan.objects.get(id=plan_id)
     
+    now = False
     if 'now' in request.data:
-        plan.start_time = datetime.utcnow()
-        
-    status = check_coordinate_for_obs_angle(plan.ra, plan.dec, plan.start_time)
-    
-    allowed = status[0]
-    distance = status[1]
+        now = True
+    allowed, distance, _, _ = check_plan_ok(plan, now)
     
     if not allowed:
         return Response({
@@ -229,6 +231,9 @@ def check_user_reservation(request):
 def execute_plan(request):
     plan = ObservationPlan.objects.get(id=request.data['plan_id'])
     
+    instructions = create_instructions_from_plan(plan.id)
     
-    pass
+    print(instructions)
+    
+    return Response({"status": "success", "message": "Plan executed."})
 
