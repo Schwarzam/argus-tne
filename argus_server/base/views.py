@@ -16,6 +16,8 @@ from django.conf import settings
 
 import os
 
+from django.db import transaction
+
 ## auxiliares
 from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, utc_to_brasilia
 
@@ -231,25 +233,23 @@ def check_user_reservation(request):
 @permission_classes([IsAuthenticated])
 @require_keys('plan_id')
 def execute_plan(request):
-    plan = ObservationPlan.objects.get(id=request.data['plan_id'])
-    
-    instructions = create_instructions_from_plan(plan.id)
-    instruction_name = str(plan.id).zfill(8)
-    
-    instructions_path = os.path.join(settings.ORCHESTRATE_FOLDER, instruction_name + ".txt")
-    with open(instructions_path, 'w') as f:
-        f.write(instructions)
-        
-    # TODO: Executar lógica backgoundtask.py
-    """
-    Verificar se o telescópio está livre.....
-    """
-    from django.db import transaction
     with transaction.atomic():
         try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
         except: return Response({"status": "error", "message": "Telescope is busy."})
+        
+        if telescope.status != 'idle':
+            return Response({"status": "error", "message": "Telescope is busy."})
+        
+        plan = ObservationPlan.objects.get(id=request.data['plan_id'])
+        
+        instructions = create_instructions_from_plan(plan.id)
+        instruction_name = str(plan.id).zfill(8)
+        
+        instructions_path = os.path.join(settings.ORCHESTRATE_FOLDER, instruction_name + ".txt")
+        with open(instructions_path, 'w') as f:
+            f.write(instructions)
     
-    telescope.update(status='busy', operation=instructions)
+        telescope.update(status='sending command to telescope', operation=instructions, executing_plan_id=plan.id)
     
     return Response({"status": "success", "message": "Plan executed."})
 
