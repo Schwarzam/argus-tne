@@ -5,6 +5,8 @@ import Stellarium from "./Stellarium";
 import Plans from "./Plans";
 import info from "../auth/appinfo";
 
+import TelescopeStatus from "./Telescope";
+
 import { PlanContext } from "./PlanContext";
 
 export default function ObservationPage() {
@@ -17,6 +19,7 @@ export default function ObservationPage() {
     return (
         <PlanContext.Provider value={{ shouldRefetch, setShouldRefetch }}>
             <div className="w-[90%] m-auto py-6">
+                <TelescopeStatus />
                 <Stellarium />
                 <div className="mt-6 flex">
                     <PlanTab />

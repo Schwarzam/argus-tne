@@ -191,5 +191,9 @@ TEMPO_FILTRO = float(config['telescope']['tempo_espera_apos_filtro'])
 TEMPO_FRAME = float(config['telescope']['tempo_espera_entre_frames'])
 TEMPO_DESLIZE = float(config['telescope']['tempo_espera_apos_deslizar'])
 
+OPERATION_TIMEOUT = float(config['telescope']['tempo_maximo_operacao_telescopio'])
+
+TEMPO_EXPOSICAO_MAXIMO = float(config['telescope']['tempo_exposicao_maximo'])
+
 assert os.path.exists(ORCHESTRATE_FOLDER), f"Orchestrate folder ({ORCHESTRATE_FOLDER}) does not exist"
 assert os.path.exists(IMAGES_FOLDER), f"Images folder ({IMAGES_FOLDER}) does not exist"

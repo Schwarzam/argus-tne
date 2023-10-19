@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from datetime import datetime
 import json
 
+from django.conf import settings
+from base.models import Telescope
 from base.auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle
 
 sio = socketio.Server(cors_allowed_origins="*")
@@ -72,6 +74,12 @@ def checkcoordondate(sid, data):
     except:
         sio.emit('coordcheckedondate', {'allowed': False, 'distance': 0}, room=sid)
 
+@sio.event
+def check_telescope_status(sid, data):
+    tel = Telescope.objects.filter(name=settings.DB_NAME).values().first()
+    
+    sio.emit('telescope_status', tel, room=sid)
+    
 @sio.event
 def disconnect(sid):
     print('Disconnected:', sid)

@@ -27,7 +27,8 @@ def check_telescope_register():
     tel = Telescope.objects.filter(name=settings.DB_NAME).first()
     if tel:
         tel.delete()
-        tel = Telescope(name=settings.DB_NAME, ra=-0, dec=0, alt=0, az=0, status='IDLE')
+        tel = Telescope(name=settings.DB_NAME)
+        reset_telescope_register(tel)
         tel.save()
         
 def reset_telescope_register(telescope):
@@ -47,9 +48,10 @@ def check_telescope():
     previous_files = set()  # Store files from the previous iteration
     current_iteration = 0
     handshake_count = 0
+    operation_count = 0
 
     print('Starting background task')
-    taxa_atualizacao = 5
+    taxa_atualizacao = 1
     check_telescope_register()
     while True:
         # Your database update logic here
@@ -65,6 +67,8 @@ def check_telescope():
         
         # Detect files that disappeared before N iterations
         for file in previous_files:
+            if 'error' in telescope.status:
+                continue
             if file not in fs_orchestrate_folder:
                 iterations_present = current_iteration - file_track_dict[file]['first_appearance']
                 if iterations_present <= N:
@@ -72,6 +76,7 @@ def check_telescope():
                     plan_id = int(file.split('.')[0])
                     telescope.executing_plan_id = plan_id
                     telescope.status = "executing operations"
+                    operation_count = 0
                     telescope.save()
                     
                 # Remove file from tracking
@@ -82,7 +87,7 @@ def check_telescope():
             if file not in file_track_dict:
                 file_track_dict[file] = {'first_appearance': current_iteration, 'count': 1}
             else:
-                file_track_dict[file]['count'] += 1
+                file_track_dict[file]['count'] += taxa_atualizacao
             
             if file_track_dict[file]['count'] >= N and file != 'HANDSHAKE':
                 # File has been present for more than {N} iterations!
@@ -96,7 +101,7 @@ def check_telescope():
 
         # Check HANDSHAKE file condition
         if len(fs_orchestrate_folder) == 1 and 'HANDSHAKE' in fs_orchestrate_folder:
-            handshake_count += 1
+            handshake_count += taxa_atualizacao
             if handshake_count >= N:
                 #Only the HANDSHAKE file has been present for more than {N} iterations!
                 if "error" in telescope.status:
@@ -114,10 +119,10 @@ def check_telescope():
         done = False
         ### If file found in DONE folder, update as done:
         if telescope.status == "executing operations":
-            
+            operation_count += taxa_atualizacao
             orc_name, _ = get_orchestrate_filename(telescope.executing_plan_id)
             
-            done_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "done")
+            done_folder = os.path.join(settings.ORCHESTRATE_FOLDER, "done")
             
             fs_done_folder = files_in_directory(done_folder)
             done = True
@@ -127,12 +132,15 @@ def check_telescope():
             
             get_orchestrate_filename(telescope.executing_plan_id)
             
-            done_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "done")
-            fs_done_folder = files_in_directory(done_folder)
+            error_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "error")
+            fs_error_folder = files_in_directory(error_folder)
         
-        
+        if operation_count > settings.OPERATION_TIMEOUT:
+            telescope.status = "error - timeout"
+            telescope.save()
+            operation_count = 0
 
-        time.sleep(1)  # Sleep for 1 second before the next update
+        time.sleep(taxa_atualizacao)  # Sleep for 1 second before the next update
         
 # Start the background thread when Django starts
 thread = threading.Thread(target=check_telescope)

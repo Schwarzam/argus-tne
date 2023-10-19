@@ -63,7 +63,10 @@ def add_coordinate_to_plan(request):
     framemode = request.data['framemode']
     date = request.data['date']
     exptime = request.data['exptime']
-  
+    
+    if float(exptime) > settings.TEMPO_EXPOSICAO_MAXIMO:
+        return Response({"message": "Tempo de exposição muito longo."})
+    
     utc_start_date = brasilia_to_utc(start_date.strftime('%Y-%m-%d %H:%M:%S'))
     status = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
     
@@ -73,7 +76,7 @@ def add_coordinate_to_plan(request):
     if not allowed:
         return Response({
                 "status": "error",
-                "message": f"Observation angle not allowed. Distance from zenith: {distance}."
+                "message": f"Angulo de observação não permitido, distância do zênite: {distance}."
             })
     
     ra, dec = convert_coord_to_degrees(ra, dec)
@@ -94,7 +97,7 @@ def add_coordinate_to_plan(request):
     
     return Response({
             "status": "success",
-            "message": f"Observation added to plan.",
+            "message": f"Observação adicionada aos planos.",
             "plan_id": obs_plan.id
         })
 
@@ -115,7 +118,7 @@ def delete_plan(request):
     plan_id = request.data['plan_id']
     plan = ObservationPlan.objects.get(id=plan_id, user = request.user)
     plan.delete()
-    return Response({"status": "success", "message": "Plan deleted."})
+    return Response({"status": "success", "message": "Plano deletado."})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -138,12 +141,12 @@ def check_if_plan_ok(request):
     if not allowed:
         return Response({
                 "status": "error",
-                "message": f"Observation angle not allowed. Distance from zenith: {distance}."
+                "message": f"Angulo de observação não permitido, distância do zênite: {distance}."
             })
     
     return Response({
             "status": "success",
-            "message": f"Observation angle allowed."
+            "message": f"Angulo de observação aprovado."
         })
 
 @api_view(['POST'])
@@ -160,10 +163,10 @@ def reserve_time(request):
     end_time = datetime.strptime(request.data['end_time'], '%Y-%m-%dT%H:%M')
     
     if end_time < start_time:
-        return Response({"message": "End time must be after start time."}, status=400)
+        return Response({"message": "Tempo final precisa estar após inicial."}, status=400)
     
     if (end_time - start_time).total_seconds() > settings.TEMPO_MAXIMO*60*60:
-        return Response({"message": "Time reserved must be 5 hours or less."}, status=400)
+        return Response({"message": "Tempo reservado máximo de {settings.TEMPO_MAXIMO} horas."}, status=400)
     
     reservation = Reservation(
         user = target_user,
@@ -172,7 +175,7 @@ def reserve_time(request):
     )
     reservation.save()
     
-    return Response({"message": "Time reserved."})
+    return Response({"message": "Tempo reservado."})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -235,10 +238,11 @@ def check_user_reservation(request):
 def execute_plan(request):
     with transaction.atomic():
         try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
-        except: return Response({"status": "error", "message": "Telescope is busy."})
+        except: return Response({"status": "error", "message": "Telescópio ocupado."})
         
-        if telescope.status != 'idle':
-            return Response({"status": "error", "message": "Telescope is busy."})
+        print(telescope)
+        if telescope[0].status != 'idle':
+            return Response({"status": "error", "message": "Telescópio ocupado."})
         
         plan = ObservationPlan.objects.get(id=request.data['plan_id'])
         
@@ -249,7 +253,7 @@ def execute_plan(request):
         with open(instructions_path, 'w') as f:
             f.write(instructions)
     
-        telescope.update(status='sending command to telescope', operation=instructions, executing_plan_id=plan.id)
+        telescope.update(status='Sending Instructions', operation=instructions, executing_plan_id=plan.id)
     
-    return Response({"status": "success", "message": "Plan executed."})
+    return Response({"status": "success", "message": "Plano executado."})
 
