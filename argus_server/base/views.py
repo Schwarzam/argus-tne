@@ -240,7 +240,6 @@ def execute_plan(request):
         try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
         except: return Response({"status": "error", "message": "Telescópio ocupado."})
         
-        print(telescope)
         if telescope[0].status != 'idle':
             return Response({"status": "error", "message": "Telescópio ocupado."})
         

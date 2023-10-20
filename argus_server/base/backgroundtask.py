@@ -86,15 +86,26 @@ def check_telescope():
                 fs_orchestrate_folder.remove(file)
         
         # Detect files that disappeared before N iterations
+        if 'Sending' in telescope.status:
+            orc_name, _ = get_orchestrate_filename(telescope.executing_plan_id)
+            found = False
+            for file in fs_orchestrate_folder:
+                if orc_name in file:
+                    found = True
+                    break
+            if not found:
+                telescope.status = "executing operations"
+                telescope.save()
+        
         for file in previous_files:
             if 'error' in telescope.status:
+                continue
+            if telescope.status == "executing operations":
                 continue
             if file not in fs_orchestrate_folder:
                 iterations_present = current_iteration - file_track_dict[file]['first_appearance']
                 if iterations_present <= N:
                     ## extract plan_id from file name
-                    plan_id = int(file.split('.')[0])
-                    telescope.executing_plan_id = plan_id
                     telescope.status = "executing operations"
                     operation_count = 0
                     telescope.save()
@@ -149,7 +160,7 @@ def check_telescope():
                 if orc_name in file and ".ORC" in file:
                     plan = ObservationPlan.objects.get(id=telescope.executing_plan_id)
                     plan.executed = True
-                    plan.executed_at = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+                    plan.executed_at = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')).replace(tzinfo=None)
                     plan.outputs = str(parse_done_file(os.path.join(done_folder, file)))
                     plan.save()
                     
