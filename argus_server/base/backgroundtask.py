@@ -150,21 +150,24 @@ def check_telescope():
                     plan = ObservationPlan.objects.get(id=telescope.executing_plan_id)
                     plan.executed = True
                     plan.executed_at = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-                    plan.outputs = parse_done_file(os.path.join(done_folder, file))
+                    plan.outputs = str(parse_done_file(os.path.join(done_folder, file)))
                     plan.save()
                     
                     reset_telescope_register(telescope)
-                    telescope.save()
             
-            done = True
+                    done = True
             
         ### If file found in ERROR folder, update as error:
         if telescope.status == "executing operations" and done == False:
             
-            get_orchestrate_filename(telescope.executing_plan_id)
+            orc_name, _ = get_orchestrate_filename(telescope.executing_plan_id)
             
             error_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "done", "Errors")
             fs_error_folder = files_in_directory(error_folder)
+            for file in fs_error_folder:
+                if orc_name in file and ".ORC" in file:
+                    reset_telescope_register(telescope)
+                    
         
         if operation_count > settings.OPERATION_TIMEOUT:
             telescope.status = "error - timeout"
