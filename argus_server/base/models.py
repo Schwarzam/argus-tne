@@ -12,34 +12,6 @@ class Telescope(models.Model):
     az = models.FloatField(null = True)
     operation = models.TextField(null = True)
     executing_plan_id = models.BigIntegerField(null = True)
-
-class Queue(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-    plan = models.ForeignKey(
-        'ObservationPlan',
-        on_delete=models.CASCADE,
-    )
-
-class ObservationsMade(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-    name = models.CharField(max_length=100, null=True)
-    ra = models.FloatField()
-    dec = models.FloatField()
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null = True)
-    instructions = models.TextField(null = True)
-
-class ObservationSchedule(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
     
 class Reservation(models.Model):
     user = models.ForeignKey(

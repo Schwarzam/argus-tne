@@ -1,0 +1,10 @@
+,Orchestrate Document, Software Bisque 1.0000                                                            ÿOSlewToRaDec    :  22.98289, -29.49722 No error.  Error code = 0 (0x0). 10/19/23 22:03:00
+SetFrameMode   : 0 No error.  Error code = 0 (0x0). 10/19/23 22:03:00
+WaitFor        :    10.00 No error.  Error code = 0 (0x0). 10/19/23 22:03:10
+SetFilter      : R No error.  Error code = 0 (0x0). 10/19/23 22:03:15
+WaitFor        :     5.00 No error.  Error code = 0 (0x0). 10/19/23 22:03:20
+TakeImage      :  10.00 C:\OV\IMAGES\00016447.22h57m40.6s_29d37m30sS.FIT No error.  Error code = 0 (0x0). 10/19/23 22:03:45
+WaitFor        :     5.00 No error.  Error code = 0 (0x0). 10/19/23 22:03:50
+       SlewToRaDec22.98289h -29.49722d          SetFrameModeFlat-Field          WaitFor
+10.0          	SetFilter
+R          WaitFor5.0          	TakeImage10          WaitFor5.0          

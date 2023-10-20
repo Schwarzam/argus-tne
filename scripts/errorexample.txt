@@ -1,0 +1,6 @@
+,Orchestrate Document, Software Bisque 1.0000                                                            ÿ.Find NGC 6744           . SlewToObject   :  19.19893, -63.81627 No error.  Error code = 0 (0x0). 03/23/23 22:36:31
+WaitFor        :    10.00 No error.  Error code = 0 (0x0). 03/23/23 22:36:41
+TakeImage      :  15.00 SBIG driver: Operating system error.  Error code = 1032 (0x408). 03/23/23 22:36:41
+       SlewToObjectNGC 6744            WaitFor
+10            	TakeImage
+15            

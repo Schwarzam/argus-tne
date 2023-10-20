@@ -19,7 +19,7 @@ import os
 from django.db import transaction
 
 ## auxiliares
-from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, utc_to_brasilia
+from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, modificar_data_arquivo, utc_to_brasilia
 
 ## models
 from .models import ObservationPlan
@@ -252,7 +252,8 @@ def execute_plan(request):
         instructions_path = os.path.join(settings.ORCHESTRATE_FOLDER, instruction_name + ".txt")
         with open(instructions_path, 'w') as f:
             f.write(instructions)
-    
+        modificar_data_arquivo(instructions_path, datetime(2020, 1, 1, 12, 0))
+        
         telescope.update(status='Sending Instructions', operation=instructions, executing_plan_id=plan.id)
     
     return Response({"status": "success", "message": "Plano executado."})

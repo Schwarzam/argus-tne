@@ -5,6 +5,7 @@ import os
 import re
 import pytz
 import ephem
+import time
 
 import numpy as np
 
@@ -247,3 +248,10 @@ def files_in_directory(directory):
         list: A list of file names in the specified directory.
     """
     return [name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))]
+
+def modificar_data_arquivo(arquivo, data):
+    # A data é convertida para um timestamp
+    timestamp = time.mktime(data.timetuple())
+
+    # Modificar data de acesso e data de modificação
+    os.utime(arquivo, (timestamp, timestamp))

@@ -1,10 +1,11 @@
+from datetime import datetime
 import threading
 import time
 import os
 
-from base.auxiliares import files_in_directory
+from base.auxiliares import files_in_directory, utc_to_brasilia
 from base.executeobs import get_orchestrate_filename
-from base.models import Telescope
+from base.models import ObservationPlan, Telescope
 
 from django.conf import settings
 
@@ -42,6 +43,24 @@ def reset_telescope_register(telescope):
     telescope.executing_plan_id = None
     telescope.save()
 
+def parse_done_file(file):
+    """
+    Parse a DONE file and return the status of the operation.
+    
+    Args:
+        file (str): The path of the DONE file.
+    
+    Returns:
+        str: The status of the operation.
+    """
+    files = []
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith('TakeImage'):
+                files.append(line.split()[3])
+            
+    return files
 
 def check_telescope():
     file_track_dict = {}
@@ -126,6 +145,17 @@ def check_telescope():
             done_folder = os.path.join(settings.ORCHESTRATE_FOLDER, "done")
             
             fs_done_folder = files_in_directory(done_folder)
+            for file in fs_done_folder:
+                if orc_name in file and ".ORC" in file:
+                    plan = ObservationPlan.objects.get(id=telescope.executing_plan_id)
+                    plan.executed = True
+                    plan.executed_at = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+                    plan.outputs = parse_done_file(os.path.join(done_folder, file))
+                    plan.save()
+                    
+                    reset_telescope_register(telescope)
+                    telescope.save()
+            
             done = True
             
         ### If file found in ERROR folder, update as error:
@@ -133,7 +163,7 @@ def check_telescope():
             
             get_orchestrate_filename(telescope.executing_plan_id)
             
-            error_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "error")
+            error_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "done", "Errors")
             fs_error_folder = files_in_directory(error_folder)
         
         if operation_count > settings.OPERATION_TIMEOUT:
