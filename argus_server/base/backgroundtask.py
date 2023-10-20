@@ -27,9 +27,10 @@ def check_telescope_register():
     tel = Telescope.objects.filter(name=settings.DB_NAME).first()
     if tel:
         tel.delete()
-        tel = Telescope(name=settings.DB_NAME)
-        reset_telescope_register(tel)
-        tel.save()
+        del tel
+    tel = Telescope(name=settings.DB_NAME)
+    reset_telescope_register(tel)
+    tel.save()
         
 def reset_telescope_register(telescope):
     telescope.ra = 0

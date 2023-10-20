@@ -86,7 +86,7 @@ export default function Plans() {
             <p className="text-sm mb-4">use o scroll</p>
 
             <div className="h-[1000px] overflow-y-scroll">
-                {plans.toReversed().map(plan => (
+                {plans.reverse().map(plan => (
                     <div key={plan.id} className="bg-white shadow rounded-lg p-6 mb-4">
                         <h2 className="text-2xl font-semibold mb-2">{plan.name}</h2>
 
