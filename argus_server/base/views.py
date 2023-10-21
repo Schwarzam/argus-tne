@@ -104,11 +104,19 @@ def add_coordinate_to_plan(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetch_plans(request):
-    ## Fetch plans from today only
+
     time = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-    plans = ObservationPlan.objects.filter(user=request.user, start_time__date=time)
-    # from argus_server.socket import sio
-    # sio.emit('message', "aqui")
+    plans = ObservationPlan.objects.filter(user=request.user, start_time__date=time, executed=False).order_by('start_time')
+
+    return Response(plans.values())
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetch_observed(request):
+
+    time = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+    plans = ObservationPlan.objects.filter(user=request.user, executed = False)
+
     return Response(plans.values())
 
 @api_view(['POST'])

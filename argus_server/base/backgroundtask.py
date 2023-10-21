@@ -173,7 +173,7 @@ def check_telescope():
             
             orc_name, _ = get_orchestrate_filename(telescope.executing_plan_id)
             
-            error_folder = os.path.join(settings.ORCHESTRATE_DONE_FOLDER, "done", "Errors")
+            error_folder = os.path.join(settings.ORCHESTRATE_FOLDER, "done", "Errors")
             fs_error_folder = files_in_directory(error_folder)
             for file in fs_error_folder:
                 if orc_name in file and ".ORC" in file:
