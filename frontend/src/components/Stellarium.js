@@ -103,21 +103,31 @@ function Instructions(){
                             alt="Navigation Guide"
                             className="w-full h-auto mb-3 rounded-md"
                         />
-                        <p className=""></p>
 
                         <BlackLine />
-                        <p className="mb-3">5. Usando o mouse, olhe bem para o topo (zenite), como mostra a imagem, e procure por objetos de interesse em torno. Use o scroll do mouse para dar zoom.</p>
+                        <p className="mb-3">5. Ajuste a hora no canto inferior direito para o momento da observação desejada.</p>
+                        <img
+                            src="/imagens/instrucao7.png" 
+                            alt="Navigation Guide"
+                            className="w-full h-auto mb-3 rounded-md"
+                        />
+
+                        <BlackLine />
+                        <p className="mb-3">6. Usando o mouse, olhe bem para o topo (zenite), como mostra a imagem, e procure por objetos de interesse em torno. Use o scroll do mouse para dar zoom.</p>
                         <img
                             src="/imagens/instrucao5.png" 
                             alt="Navigation Guide"
                             className="w-full h-auto mb-3 rounded-md"
                         />
-                        <p className=""></p>
 
-
-
-
-        
+                        <BlackLine />
+                        <p className="mb-3">7. Ao encontrar um objeto de interesse, clique nele e copie suas coordenadas (Ra/Dec) para adicionar ao plano de observação abaixo.</p>
+                        <img
+                            src="/imagens/instrucao6.png" 
+                            alt="Navigation Guide"
+                            className="w-full h-auto mb-3 rounded-md"
+                        />
+                        
         </div>
     )
 }

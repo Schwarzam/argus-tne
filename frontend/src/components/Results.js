@@ -9,7 +9,6 @@ export default function Results(props) {
     useEffect(() => {
         axios.get('/api/fetch_observed')
             .then((res) => {
-                console.log(res.data)
                 setResults(res.data);
             })
             .catch((err) => console.log(err));
