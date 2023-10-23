@@ -174,7 +174,7 @@ def reserve_time(request):
         return Response({"message": "Tempo final precisa estar após inicial."}, status=400)
     
     if (end_time - start_time).total_seconds() > settings.TEMPO_MAXIMO*60*60:
-        return Response({"message": "Tempo reservado máximo de {settings.TEMPO_MAXIMO} horas."}, status=400)
+        return Response({"message": f"Tempo reservado máximo de {settings.TEMPO_MAXIMO} horas."}, status=400)
     
     reservation = Reservation(
         user = target_user,

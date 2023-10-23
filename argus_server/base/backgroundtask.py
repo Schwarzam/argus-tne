@@ -58,8 +58,9 @@ def parse_done_file(file):
         lines = f.readlines()
         for line in lines:
             if line.startswith('TakeImage'):
-                files.append(line.split()[3])
-            
+                filename = line.split()[3]
+                filename = os.path.basename(filename)
+                files.append(filename)
     return files
 
 def check_telescope():
@@ -161,7 +162,7 @@ def check_telescope():
                     plan = ObservationPlan.objects.get(id=telescope.executing_plan_id)
                     plan.executed = True
                     plan.executed_at = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')).replace(tzinfo=None)
-                    plan.outputs = str(parse_done_file(os.path.join(done_folder, file)))
+                    plan.outputs = str(parse_done_file(os.path.join(done_folder, file))).replace("[", "").replace("]", "").replace("'", "")
                     plan.save()
                     
                     reset_telescope_register(telescope)
