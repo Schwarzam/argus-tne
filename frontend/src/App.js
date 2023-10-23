@@ -10,6 +10,8 @@ import Home from "./components/Home";
 import sio from "./auth/socket";
 import Admin from "./components/Admin";
 
+import Results from "./components/Results";
+
 // info.load();
 sio.connect();
 
@@ -22,6 +24,11 @@ export default function App() {
       <Route path="/observation" element={
         <PrivateRoute>
           <ObservationPage />
+        </PrivateRoute>
+      } />
+      <Route path="/results" element={
+        <PrivateRoute>
+          <Results />
         </PrivateRoute>
       } />
       <Route path="/admin" element={

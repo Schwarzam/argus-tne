@@ -21,8 +21,9 @@ export default function Home() {
         <p className="mb-2">É mantido pelo <a href="https://www.iag.usp.br/astronomia" className="text-blue-600 hover:underline">Departamento de Astronomia do IAG/USP</a>, no Observatório Abrahão de Moraes localizado no município de Valinhos em SP.</p>
         <p className="mb-2">Veja também o evento <a href="http://www.telescopiosnaescola.pro.br/argus/noite_com_as_estrelas.php" className="text-blue-600 hover:underline">Noite com as Estrelas</a> e venha nos fazer uma visita.</p>
       </div>
-      <div className="grid gap-4 md:flex md:space-x-4">
+      <div className="grid grid-cols-2 gap-4">
         <ActionBox title="Observar!" onAction={() => navigate("/observation")} />
+        <ActionBox title="Minhas observações" onAction={() => navigate("/results")} />
         <ActionBox title="Admin" onAction={() => navigate("/admin")} />
       </div>
     </div>

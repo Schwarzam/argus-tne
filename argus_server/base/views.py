@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.response import Response
+from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 
 from base.executeobs import create_instructions_from_plan
@@ -15,6 +16,7 @@ from .decorators import require_keys
 from django.conf import settings
 
 import os
+
 
 from django.db import transaction
 
@@ -113,10 +115,8 @@ def fetch_plans(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetch_observed(request):
-
-    time = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-    plans = ObservationPlan.objects.filter(user=request.user, executed = False)
-
+    plans = ObservationPlan.objects.filter(user=request.user, executed = True)
+    
     return Response(plans.values())
 
 @api_view(['POST'])
@@ -244,6 +244,12 @@ def check_user_reservation(request):
 @permission_classes([IsAuthenticated])
 @require_keys('plan_id')
 def execute_plan(request):
+    # Check if user has reservation for this time
+    now = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')).replace(tzinfo=None)
+    reservations = Reservation.objects.filter(user=request.user, start_time__lte=now, end_time__gte=now)
+    if len(reservations) == 0:
+        return Response({"status": "error", "message": "Usuário não tem reserva para este horário."})
+    
     with transaction.atomic():
         try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
         except: return Response({"status": "error", "message": "Telescópio ocupado."})
@@ -265,3 +271,15 @@ def execute_plan(request):
     
     return Response({"status": "success", "message": "Plano executado."})
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('filename')
+def request_file(request):
+    file_path = os.path.join(settings.IMAGES_FOLDER, request.data['filename'])
+    
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return Response({"status": "error", "message": "Arquivo nao encontrado."})
+    
+    file = open(file_path, 'rb')
+    response = HttpResponse(file.read(), content_type="application/octet-stream")
+    return response

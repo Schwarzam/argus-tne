@@ -21,4 +21,5 @@ urlpatterns = [
     path('check_if_plan_ok/', check_if_plan_ok, name='check_if_plan_ok'),
     path('execute_plan/', views.execute_plan, name='execute_plan'),
     path('fetch_observed/', views.fetch_observed, name='fetch_observed'),
+    path('request_file/', views.request_file, name='request_file'),
 ]
