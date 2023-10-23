@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render
 
 # Create your views here.
@@ -191,9 +191,10 @@ def get_reservations(request):
     if not request.user.is_staff:
         return Response({"message": "Only admins can get reservations."}, status=401)
     
+    hora = datetime.utcnow() + timedelta(hours=-int(settings.TEMPO_MAXIMO))
+    brazilian_time = utc_to_brasilia(hora.strftime('%Y-%m-%d %H:%M:%S')).replace(tzinfo=None)
     
-    ## Get reservations from after now in date order
-    reservations = Reservation.objects.filter(start_time__gte=datetime.utcnow()).order_by('start_time')
+    reservations = Reservation.objects.filter(start_time__gte=brazilian_time).order_by('start_time')
 
     reservs = []
     for reservation in reservations:

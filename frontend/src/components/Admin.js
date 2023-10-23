@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 import { getCookie } from '../auth/cookies';
+import Telescope from '../components/Telescope';
 
 export default function Admin() {
     const navigate = useNavigate();
@@ -68,6 +69,8 @@ export default function Admin() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
+
+        <Telescope />
         <h1 className='font-bold text-3xl mb-10'>Painel Administrador</h1>
         <SearchAndDateComponent suggestions={users} onSubmit={reserveTime} />
 
