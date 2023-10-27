@@ -114,6 +114,9 @@ def check_telescope():
                 # Remove file from tracking
                 del file_track_dict[file]
         
+        if 'idle' in telescope.status:
+            operation_count = 0
+        
         # Update file appearance and counts
         for file in fs_orchestrate_folder:
             if file not in file_track_dict:
