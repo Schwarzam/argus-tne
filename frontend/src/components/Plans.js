@@ -10,7 +10,7 @@ export default function Plans() {
     const [plans, setPlans] = useState([]);
     const { shouldRefetch, setShouldRefetch } = usePlanContext();
 
-    useEffect(() => {
+    const fetch_plans = () => {
         axios.get("/api/fetch_plans/")
             .then((response) => {
                 setPlans(response.data);
@@ -19,7 +19,19 @@ export default function Plans() {
             .catch((error) => {
                 console.log(error);
             });
+    }
+
+    useEffect(() => {
+        fetch_plans()
     }, [shouldRefetch]);
+
+    
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetch_plans();
+        }, 25000);   
+        return () => clearInterval(interval);
+    }, [])
 
     const handleDelete = (plan_id) => {
         axios.post("/api/delete_plan/", { plan_id: plan_id }, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
@@ -37,16 +49,25 @@ export default function Plans() {
             });
     };
 
+    
+
+    
     function updatePlanInState(idToUpdate, state) {
-        setPlans(prevPlans => prevPlans.map(plan => {
-            if (plan.id === idToUpdate) {
-                return {
-                    ...plan,
-                    canObserveNow: state
-                };
-            }
-            return plan;
-        }));
+        setPlans(prevPlans => {
+            // First, update the specific plan
+            const updatedPlans = prevPlans.map(plan => {
+                if (plan.id === idToUpdate) {
+                    return {
+                        ...plan,
+                        canObserveNow: state
+                    };
+                }
+                return plan;
+            });
+
+            // Then, reverse the order of the updated plans
+            return [...updatedPlans].reverse();
+        });
     }
 
     const handleCheckObservation = (plan_id) => {

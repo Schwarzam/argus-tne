@@ -9,7 +9,7 @@ export default function Results(props) {
     useEffect(() => {
         axios.get('/api/fetch_observed')
             .then((res) => {
-                setResults(res.data);
+                setResults(res.data.reverse());
             })
             .catch((err) => console.log(err));
     }, []);
@@ -79,6 +79,15 @@ const Result = ({ result }) => {
             });
     }
 
+    function downloadImage(imageUrl, filter) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.setAttribute('download', `${result.name}_${filter}.gif`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
     const formatDate = (dateStr) => {
         const dateObj = new Date(dateStr);
         return `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
@@ -119,6 +128,11 @@ const Result = ({ result }) => {
                                     onClick={() => downloadFile(result.outputs.split(',')[index].trim(), filter.trim())}
                                     className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">
                                     Download FITS
+                                </button>
+                                <button 
+                                    onClick={() => downloadImage(images[filter.trim()], filter.trim())}
+                                    className="inline-block mt-2 ml-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200">
+                                    Download GIF
                                 </button>
                             </div>
                         ))}
