@@ -1,4 +1,4 @@
-## Argus - Telescope in Schools
+# Argus - Telescope in Schools
 
 Written by Gustavo Schwarz, 2023.
 
@@ -10,7 +10,7 @@ It's maintained by the [Astronomy Department of IAG/USP](https://www.iag.usp.br/
 
 Also, check out the [Night with the Stars](http://www.telescopiosnaescola.pro.br/argus/noite_com_as_estrelas.php) event and come pay us a visit.
 
-### Computer enviroment
+## Computer enviroment
 
 This software was developed to run on windows 7 in the observatory's computer. It's recommended to use the same OS and python version 3.8 as the conda environment. Unfortunatelly there's no docker on windows 7, so we can't use it.
 
@@ -22,7 +22,7 @@ Orchestrate -   version 1.00.050
 CCDSoft     -   version 5.00.218
 ```
 
-### First time instalation
+## First time instalation
 
 You should first install Anaconda. You can download it [here](https://repo.anaconda.com/archive/). The last reported version to work in Windows 7 was 2019.10. 
 Direct link to the installer: [Windows 64-bit](https://repo.anaconda.com/archive/Anaconda3-2019.10-Windows-x86_64.exe)
@@ -61,7 +61,7 @@ start nginx
 
 Nginx will start on port 80, so make sure no other software is using this port. It will also start automatically when you turn on the computer. You should kill it on the task manager if you want to stop it.
 
-### Running the software
+## Running the software
 
 To run the software you need to activate the environment first:
 
@@ -77,7 +77,7 @@ python manage.py runserver
 
 This will start the django server on port 8000. You can access the admin page on ```localhost:8000/admin```. To access the frontend go to ```localhost``` on your browser.
 
-### Development
+## Development
 
 This was developed using Django for the server and React for the frontend. 
 
