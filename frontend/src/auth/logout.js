@@ -6,6 +6,13 @@ function Logout() {
 
   useEffect(() => {
     deleteCookie('sessionid');
+    try{
+      deleteCookie('csrftoken');
+    } catch (error) {
+      console.log(error);
+    }
+    
+
     navigate('/login');
   }, [navigate]);
 

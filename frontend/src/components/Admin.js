@@ -71,7 +71,16 @@ export default function Admin() {
         <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
 
         <Telescope />
+
+        
+
         <h1 className='font-bold text-3xl mb-10'>Painel Administrador</h1>
+        <div className='grid py-6'>
+            <p>Registrar usuário</p>
+            <button onClick={() => navigate('/register', { state: { admin: true } })} className='px-4 py-2 bg-blue-600 rounded-md text-white my-2'>Registrar</button>
+            <button onClick={() => navigate('/logout')} className='px-4 py-2 bg-red-600 rounded-md my-2'>Logout</button>
+        </div>
+
         <SearchAndDateComponent suggestions={users} onSubmit={reserveTime} />
 
         <ReservationsComponent reservations={reservations} deleteReservation={deleteReservation} />

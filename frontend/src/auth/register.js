@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { deleteCookie, saveCookiesToLocalStorage, getCookiesFromLocalStorage } from '../auth/cookies';
 
 import sio from './socket';
 
 function Register() {
+  const location = useLocation();
+  const admin = location.state?.admin || false;
+
   const [formData, setFormData] = useState({
     email: '',
     completeName: '',
@@ -42,17 +47,30 @@ function Register() {
       return;
     }
 
+    if (admin){
+
+      console.log("Saving cookies to local storage")
+      saveCookiesToLocalStorage();
+    } 
+    
 
     await axios.post('/api/auth/register/', formData)
     .then((res) => {
-        sio.connect();
-        navigate('/');
+        
+        if (admin){
+          getCookiesFromLocalStorage();
+          navigate('/admin');
+        }
+        else{
+          sio.connect();
+          navigate('/');
+        }
         }
     ).catch((err) => {
             if (err.response.status === 500){
                 setErrors({"email": ["Email already in use"]});
             }else if ("detail" in err.response.data){
-                navigate('/');
+                //navigate('/');
             }
             else{
                 setErrors(err.response.data);
