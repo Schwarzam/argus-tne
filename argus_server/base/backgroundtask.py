@@ -41,6 +41,7 @@ def reset_telescope_register(telescope):
     telescope.status = "idle"
     telescope.operation = None
     telescope.executing_plan_id = None
+    telescope.executing_plan_name = None
     telescope.save()
 
 def parse_done_file(file):

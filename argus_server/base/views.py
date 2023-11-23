@@ -247,10 +247,12 @@ def check_user_reservation(request):
 def execute_plan(request):
     # Check if user has reservation for this time
     now = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')).replace(tzinfo=None)
-    reservations = Reservation.objects.filter(user=request.user, start_time__lte=now, end_time__gte=now)
-    if len(reservations) == 0:
-        return Response({"status": "error", "message": "Usuário não tem reserva para este horário."})
     
+    if not request.user.is_staff:
+        reservations = Reservation.objects.filter(user=request.user, start_time__lte=now, end_time__gte=now)
+        if len(reservations) == 0:
+            return Response({"status": "error", "message": "Usuário não tem reserva para este horário."})
+        
     with transaction.atomic():
         try: telescope = Telescope.objects.filter(name=settings.DB_NAME).select_for_update(nowait=True)
         except: return Response({"status": "error", "message": "Telescópio ocupado."})
@@ -260,6 +262,13 @@ def execute_plan(request):
         
         plan = ObservationPlan.objects.get(id=request.data['plan_id'])
         
+        allowed, distance, alt, azi = check_plan_ok(plan, now)
+        if not allowed:
+            return Response({
+                    "status": "error",
+                    "message": f"Angulo de observação não permitido, distância do zênite: {distance}."
+                })
+        
         instructions = create_instructions_from_plan(plan.id)
         instruction_name = str(plan.id).zfill(8)
         
@@ -268,7 +277,7 @@ def execute_plan(request):
             f.write(instructions)
         modificar_data_arquivo(instructions_path, datetime(2020, 1, 1, 12, 0))
         
-        telescope.update(status='Sending Instructions', operation=instructions, executing_plan_id=plan.id)
+        telescope.update(status='Sending Instructions', operation=instructions, alt=alt, az=azi, ra=plan.ra, dec=plan.dec, executing_plan_id=plan.id, executing_plan_name=plan.name)
     
     return Response({"status": "success", "message": "Plano executado."})
 

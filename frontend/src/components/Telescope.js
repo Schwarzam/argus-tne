@@ -44,9 +44,11 @@ const TelescopeStatusDiv = ({ data }) => {
     return (
         <div className="w-full bg-gray-800 text-white p-8 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-4">Telescope: {data.name}</h1>
+            <p className="text-sm mb-4">Caso o telescópio esteja observando, assim que voltar para "idle" a observacao estará pronta. </p>
             <div className="grid grid-cols-2 gap-4">
                 <p><span className="font-semibold">Status:</span> <span className={`p-1 rounded text-black font-bold ${statusColor}`}>{data.status}</span></p>
                 <p><span className="font-semibold">Plan ID:</span> {data.executing_plan_id}</p>
+                <p><span className="font-semibold">Plan Name:</span> {data.executing_plan_name}</p>
                 <p><span className="font-semibold">RA:</span> {data.ra}</p>
                 <p><span className="font-semibold">DEC:</span> {data.dec}</p>
                 <p><span className="font-semibold">Altitude:</span> {data.alt}</p>

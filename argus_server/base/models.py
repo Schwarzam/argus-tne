@@ -12,6 +12,7 @@ class Telescope(models.Model):
     az = models.FloatField(null = True)
     operation = models.TextField(null = True)
     executing_plan_id = models.BigIntegerField(null = True)
+    executing_plan_name = models.CharField(max_length=100, null=True)
     
 class Reservation(models.Model):
     user = models.ForeignKey(
@@ -31,7 +32,7 @@ class ObservationPlan(models.Model):
     dec = models.FloatField()
     filters = models.CharField(max_length=40)
     framemode = models.CharField(max_length=40)
-    exptime = models.IntegerField()
+    exptime = models.FloatField()
     start_time = models.DateTimeField()
     executed = models.BooleanField(default=False)
     executed_at = models.DateTimeField(null = True)
