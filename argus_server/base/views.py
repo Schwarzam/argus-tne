@@ -295,9 +295,8 @@ def request_file(request):
     return response
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
-@require_keys('filename')
 def get_observable_presaved_list(request):
     df = pd.read_csv("base/documents/final_messier.csv")
 

@@ -26,6 +26,8 @@ export default function PlanTab() {
     const [currentObservationStatus, setCurrentObservationStatus] = useState(null); // null for loading, true for OK, false for not OK
     const [futureObservationStatus, setFutureObservationStatus] = useState(null);
 
+    const [preList, setPreList] = useState([]);
+
     const { setShouldRefetch } = usePlanContext();
 
     const toggleFilter = (filter) => {
@@ -39,6 +41,24 @@ export default function PlanTab() {
             }
         });
     };
+
+    const fetch_pre_list = () => {
+        axios.get("/api/get_observable_presaved_list/")
+            .then((response) => {
+                setPreList(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+    useEffect(() => {
+        fetch_pre_list();
+        const interval = setInterval(() => {
+            fetch_pre_list();
+        }, 300000);   
+        return () => clearInterval(interval);
+    }, [])
 
     useEffect(() => {
         sio.on("message", (message) => {
@@ -167,9 +187,32 @@ export default function PlanTab() {
             });
     }
 
+    const setPlanFromPreList = (e) => {
+        const plan = preList.find(plan => plan.Name === e.target.value);
+        
+        setObservationName(plan.Name);
+        setRA(plan.RA);
+        setDEC(plan.DEC);
+        setInputValue(`${plan.RA}  ${plan.DEC}`);
+
+    }
+
+
     return (
         <div className="w-full max-w-lg mx-auto py-6 px-4 rounded-md">
             <h3 className="font-bold text-2xl mb-4">Planejamento de observação</h3>
+            
+            <div className="py-4 mb-4 w-full border border-red-400 rounded-md">
+                <div className="pl-2">
+                <p>Selecione um plano já pronto se preferir.</p>
+                <select onChange={(e) => setPlanFromPreList(e)} className="py-2 px-4 border rounded-md">
+                    {preList.map((plan) => (
+                        <option key={plan.id} value={plan.id}>{plan.Name}</option>
+                    ))}
+                </select>
+                </div>
+            </div>
+
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Nome da observação:</label>
                 <input

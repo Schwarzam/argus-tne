@@ -10,6 +10,7 @@ export default function Plans() {
     const [plans, setPlans] = useState([]);
     const { shouldRefetch, setShouldRefetch } = usePlanContext();
 
+
     const fetch_plans = () => {
         axios.get("/api/fetch_plans/")
             .then((response) => {
@@ -48,8 +49,6 @@ export default function Plans() {
                 console.log(error);
             });
     };
-
-    
 
     
     function updatePlanInState(idToUpdate, state) {
