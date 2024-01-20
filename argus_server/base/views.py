@@ -16,7 +16,7 @@ from .decorators import require_keys
 from django.conf import settings
 
 import os
-
+import pandas as pd
 
 from django.db import transaction
 
@@ -293,3 +293,17 @@ def request_file(request):
     file = open(file_path, 'rb')
     response = HttpResponse(file.read(), content_type="application/octet-stream")
     return response
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@require_keys('filename')
+def get_observable_presaved_list(request):
+    df = pd.read_csv("base/documents/final_messier.csv")
+
+    for index, row in df.iterrows():
+        allowed, distance, _, _ = check_coordinate_for_obs_angle(row['RA'], row['DEC'])
+        if not allowed:
+            df.drop(index, inplace=True)
+    
+    return Response(df.to_dict(orient='records'))

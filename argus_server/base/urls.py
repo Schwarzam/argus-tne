@@ -1,7 +1,7 @@
 # myapp/urls.py
 
 from django.urls import path
-from .views import add_coordinate_to_plan, above_sky, fetch_plans, check_if_plan_ok, get_info, delete_plan
+from .views import add_coordinate_to_plan, above_sky, fetch_plans, check_if_plan_ok, get_info, delete_plan, get_observable_presaved_list
 
 import base.views as views
 
@@ -22,4 +22,6 @@ urlpatterns = [
     path('execute_plan/', views.execute_plan, name='execute_plan'),
     path('fetch_observed/', views.fetch_observed, name='fetch_observed'),
     path('request_file/', views.request_file, name='request_file'),
+    
+    path('get_observable_presaved_list/', get_observable_presaved_list, name='get_observable_presaved_list')
 ]
