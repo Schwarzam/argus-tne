@@ -194,7 +194,7 @@ export default function PlanTab() {
         setRA(plan.RA);
         setDEC(plan.DEC);
         setInputValue(`${plan.RA}  ${plan.DEC}`);
-
+        sio.send("checkcoord", {ra: plan.RA, dec: plan.DEC});
     }
 
 
