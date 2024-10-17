@@ -33,7 +33,7 @@ class ObservationPlan(models.Model):
     filters = models.CharField(max_length=40)
     framemode = models.CharField(max_length=40)
     exptime = models.FloatField()
-    start_time = models.DateTimeField()
+    start_time = models.DateTimeField(null=True)
     executed = models.BooleanField(default=False)
     executed_at = models.DateTimeField(null = True)
     outputs = models.TextField(null = True)

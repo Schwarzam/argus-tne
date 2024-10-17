@@ -108,7 +108,7 @@ def add_coordinate_to_plan(request):
 def fetch_plans(request):
 
     time = utc_to_brasilia(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-    plans = ObservationPlan.objects.filter(user=request.user, start_time__date=time, executed=False).order_by('start_time')
+    plans = ObservationPlan.objects.filter(user=request.user).order_by('start_time')
 
     return Response(plans.values())
 

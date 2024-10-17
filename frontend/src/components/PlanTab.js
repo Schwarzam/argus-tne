@@ -16,7 +16,7 @@ export default function PlanTab() {
     const [ra, setRA] = useState("");
     const [dec, setDEC] = useState("");
 
-    const [exptime, setExptime] = useState(10);
+    const [exptime, setExptime] = useState(0.1);
 
     const [availableFilters, setAvailableFilters] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState([]);
@@ -133,7 +133,7 @@ export default function PlanTab() {
         setIsValid(true);
         setRA("");
         setDEC("");
-        setExptime(10);
+        setExptime(0.1);
         setSelectedFilters([]);
         setFrame("");
         setCurrentObservationStatus(null);
