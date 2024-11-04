@@ -15,6 +15,7 @@ export default function Plans() {
         axios.get("/api/fetch_plans/")
             .then((response) => {
                 setPlans(response.data);
+                console.log(response.data);
                 if (shouldRefetch) setShouldRefetch(false);
             })
             .catch((error) => {
@@ -111,12 +112,26 @@ export default function Plans() {
                         <h2 className="text-2xl font-semibold mb-2">{plan.name}</h2>
 
                         <div className="bg-white p-4 border rounded-md shadow-sm">
-                            <p className="text-gray-700 font-medium">RA  DEC:</p>
-                            <div className="text-gray-900 mt-2">
-                                {Number((plan.ra).toFixed(5))}
-                                &nbsp;&nbsp;
-                                {Number((plan.dec).toFixed(5))}
-                            </div>
+                            {plan.object_name ? (
+                                <div>
+                                    <p className="text-gray-700 font-medium">Object Name:</p>
+                                    <div className="text-gray-900 mt-2">
+                                        {plan.object_name}
+                                    </div>
+                                </div>
+                                ) : (
+                                <div>
+                                    <p className="text-gray-700 font-medium">RA  DEC:</p>
+                                    <div className="text-gray-900 mt-2">
+                                        {Number((plan.ra).toFixed(5))}
+                                        &nbsp;&nbsp;
+                                        {Number((plan.dec).toFixed(5))}
+                                    </div>
+                                </div>
+                                )
+                            }
+
+                            
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

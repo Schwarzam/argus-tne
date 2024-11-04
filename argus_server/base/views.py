@@ -21,7 +21,7 @@ import pandas as pd
 from django.db import transaction
 
 ## auxiliares
-from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, modificar_data_arquivo, utc_to_brasilia
+from .auxiliares import brasilia_to_utc, check_coordinate_for_obs_angle, check_plan_ok, get_abovesky_coordinates, convert_coord_to_degrees, get_alt_az, list_to_string, modificar_data_arquivo, utc_to_brasilia, get_body_coords
 
 ## models
 from .models import ObservationPlan
@@ -46,8 +46,11 @@ def get_info(request):
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@require_keys('ra', 'dec', 'date', 'filters', 'framemode', 'exptime')
+@require_keys('date', 'filters', 'framemode', 'exptime')
 def add_coordinate_to_plan(request):
+    print(request.data)
+    if ('ra' not in request.data or 'dec' not in request.data) and ('object_name' not in request.data):
+        return Response({"message": "Missing required fields."})
     try:
         date = request.data['date'] 
         start_date = datetime.strptime(date, '%Y-%m-%dT%H:%M')
@@ -60,7 +63,7 @@ def add_coordinate_to_plan(request):
     
     ra = request.data['ra']
     dec = request.data['dec']
-    
+
     filters = list_to_string(request.data['filters'])
     framemode = request.data['framemode']
     date = request.data['date']
@@ -70,6 +73,13 @@ def add_coordinate_to_plan(request):
         return Response({"message": "Tempo de exposição muito longo."})
     
     utc_start_date = brasilia_to_utc(start_date.strftime('%Y-%m-%d %H:%M:%S'))
+    
+    object_name = None
+    if 'object_name' in request.data:
+        object_name = request.data['object_name']
+        print(object_name)
+        ra, dec = get_body_coords(object_name, utc_start_date)
+    
     status = check_coordinate_for_obs_angle(ra, dec, utc_start_date)
     
     allowed = status[0]
@@ -88,6 +98,7 @@ def add_coordinate_to_plan(request):
     obs_plan = ObservationPlan(
         user = request.user,
         name = name,
+        object_name = object_name,
         ra = ra,
         dec = dec,
         filters = filters,

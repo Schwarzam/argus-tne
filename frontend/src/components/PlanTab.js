@@ -11,10 +11,11 @@ import { toast } from "react-toastify";
 export default function PlanTab() {
     const [inputValue, setInputValue] = useState("");
     const [observationName, setObservationName] = useState("");
+    const [objectName, setObjectName] = useState(null);
     const [startTime, setStartTime] = useState("");
     const [isValid, setIsValid] = useState(true);
-    const [ra, setRA] = useState("");
-    const [dec, setDEC] = useState("");
+    const [ra, setRA] = useState(null);
+    const [dec, setDEC] = useState(null);
 
     const [exptime, setExptime] = useState(0.1);
 
@@ -29,6 +30,19 @@ export default function PlanTab() {
     const [preList, setPreList] = useState([]);
 
     const { setShouldRefetch } = usePlanContext();
+
+    const celestialObjects = [
+        { label: "Sun", value: "sun" },
+        { label: "Mercury", value: "mercury" },
+        { label: "Venus", value: "venus" },
+        { label: "Earth", value: "earth" },
+        { label: "Earth's Moon", value: "moon" },
+        { label: "Mars", value: "mars" },
+        { label: "Jupiter", value: "jupiter barycenter" },
+        { label: "Saturn", value: "saturn barycenter" },
+        { label: "Uranus", value: "uranus barycenter" },
+        { label: "Neptune", value: "neptune barycenter" },
+    ];
 
     const toggleFilter = (filter) => {
         setSelectedFilters(prevFilters => {
@@ -128,6 +142,7 @@ export default function PlanTab() {
 
     const resetStates = () => {
         setInputValue("");
+        setObjectName(null);
         setObservationName("");
         setStartTime("");
         setIsValid(true);
@@ -140,22 +155,23 @@ export default function PlanTab() {
         setFutureObservationStatus(null);
     }
 
-    const salvarPlano = (observarnow=false) => {
-        if (selectedFilters.length === 0 || frameMode === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ra === "" || dec === ""){
-            toast.error("Preencha todos os campos")
-            console.log("aqui")
-            return
+    const salvarPlano = (observarnow = false) => {
+        console.log(ra, dec, objectName)
+        console.log(((ra === null || dec === null) && (objectName === "")))
+        if (selectedFilters.length === 0 || frameMode === "" || exptime === 0 || startTime === "" || startTime === null || observationName === "" || ((ra === null && dec === null) && (objectName === ""))) {
+            toast.error("Preencha todos os campos");
+            return;
         }
 
-        if (!futureObservationStatus){
-            toast.error("Plano nao aprovado.")
-            return
-        }
+        // if (!futureObservationStatus) {
+        //     toast.error("Plano nao aprovado.");
+        //     return;
+        // }
 
-        if (observarnow && !currentObservationStatus){
-            toast.error("Plano nao aprovado para observação agora.")
-            return
-        }
+        // if (observarnow && !currentObservationStatus) {
+        //     toast.error("Plano nao aprovado para observação agora.");
+        //     return;
+        // }
 
         const data = {
             name: observationName,
@@ -165,27 +181,31 @@ export default function PlanTab() {
             framemode: frameMode,
             exptime: exptime,
             date: startTime
+        };
+
+        // Include object_name if selected
+        if (objectName) {
+            data.object_name = objectName;
         }
 
-        axios.post("/api/create_plan/", data, {headers: {'X-CSRFToken': getCookie('csrftoken')}})
+        axios.post("/api/create_plan/", data, { headers: { 'X-CSRFToken': getCookie('csrftoken') } })
             .then((response) => {
-                if (response.data.status === "success"){
-                    if (observarnow){
-                        observar(response.data.plan_id)
+                if (response.data.status === "success") {
+                    if (observarnow) {
+                        observar(response.data.plan_id);
                     }
 
                     resetStates();
                     setShouldRefetch(true);
-                    toast.success("Plano salvo com sucesso")
-                    
-                }else{
-                    toast.error(response.data.message)
+                    toast.success("Plano salvo com sucesso");
+                } else {
+                    toast.error(response.data.message);
                 }
             })
             .catch((error) => {
                 console.log(error);
             });
-    }
+    };
 
     const setPlanFromPreList = (e) => {
         const plan = preList.find(plan => plan.Name === e.target.value);
@@ -211,6 +231,24 @@ export default function PlanTab() {
                     ))}
                 </select>
                 </div>
+            </div>
+
+            <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">Celestial Object (Optional):</label>
+                <select
+                    value={objectName}
+                    onChange={(e) => setObjectName(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                >
+                    <option key={0} value={null}>
+                        {null}
+                    </option>
+                    {celestialObjects.map((object) => (
+                        <option key={object.value} value={object.label}>
+                            {object.label}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             <div className="mb-4">

@@ -28,8 +28,9 @@ class ObservationPlan(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=100, null=True)
-    ra = models.FloatField()
-    dec = models.FloatField()
+    object_name = models.CharField(max_length=35, null=True)
+    ra = models.FloatField(null = True)
+    dec = models.FloatField(null = True)
     filters = models.CharField(max_length=40)
     framemode = models.CharField(max_length=40)
     exptime = models.FloatField()

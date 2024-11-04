@@ -8,8 +8,33 @@ import ephem
 import time
 
 import numpy as np
+from skyfield.api import utc
 
 from django.conf import settings
+from skyfield.api import load
+
+# Load ephemeris data
+planets = load('de421.bsp')  # JPL's DE421 ephemeris for major solar system bodies
+
+# Time scale for current time
+ts = load.timescale()
+
+# Dictionary of bodies in ephemeris files
+bodies = {
+    "Sun": planets['sun'],
+    "Mercury": planets['mercury'],
+    "Venus": planets['venus'],
+    "Earth": planets['earth'],
+    "Earth's Moon": planets['moon'],
+    "Mars": planets['mars'],
+    "Jupiter": planets['jupiter barycenter'],
+    "Saturn": planets['saturn barycenter'],
+    "Uranus": planets['uranus barycenter'],
+    "Neptune": planets['neptune barycenter']
+}
+
+# Set up observer position (e.g., Earth's center)
+observer = planets['earth']
 
 def _check_units(ra, dec):
     # Pattern to match: any letter (a-z, A-Z) or "°"
@@ -45,6 +70,21 @@ def convert_coord_to_degrees(ra, dec):
     # Return RA and Dec in degrees
     return c.ra.deg, c.dec.deg
 
+
+def get_body_coords(body_name, time_obs):
+    """Returns the RA and Dec of a celestial body in degrees."""
+    # Get current time
+    current_time = ts.from_datetime(time_obs)
+    
+    # Get the body's astrometric position relative to the observer
+    body = bodies[body_name]
+    astrometric = observer.at(current_time).observe(body)
+    ra, dec, distance = astrometric.radec()
+
+    # Return RA and Dec in degrees
+    return ra._degrees, dec.degrees 
+
+
 def check_plan_ok(plan, now=False):
     """
     Check if a given observation plan is valid.
@@ -62,9 +102,14 @@ def check_plan_ok(plan, now=False):
     """
     if now:
         plan.start_time = datetime.utcnow()
-        
-    allowed, distance, altitude, azimuth = check_coordinate_for_obs_angle(plan.ra, plan.dec, plan.start_time)
     
+    if plan.object_name is not None:
+        ra, dec = get_body_coords(plan.object_name, plan.start_time.replace(tzinfo=utc))
+    else:
+        ra = plan.ra
+        dec = plan.dec
+    
+    allowed, distance, altitude, azimuth = check_coordinate_for_obs_angle(ra, dec, plan.start_time)
     return allowed, distance, altitude, azimuth
 
 def get_alt_az(ra_deg, dec_deg, latitude=settings.LAT, longitude=settings.LON, utctime=datetime.utcnow()):

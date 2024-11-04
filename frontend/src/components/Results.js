@@ -111,8 +111,16 @@ const Result = ({ result }) => {
             </div>
             {isOpen && (
                 <div className="p-4 space-y-2">
-                    <p className="text-sm"><strong className="text-gray-600">RA:</strong> {result.ra}</p>
-                    <p className="text-sm"><strong className="text-gray-600">DEC:</strong> {result.dec}</p>
+                    {result.object_name ? ( 
+                        <p className="text-sm"><strong className="text-gray-600">Object Name:</strong> {result.object_name}</p>
+                    )
+                    :
+                    <div>
+                        <p className="text-sm"><strong className="text-gray-600">RA:</strong> {result.ra}</p>
+                        <p className="text-sm"><strong className="text-gray-600">DEC:</strong> {result.dec}</p>
+                    </div>
+                    }
+                    
                     <p className="text-sm"><strong className="text-gray-600">Filtros:</strong> {result.filters}</p>
                     <p className="text-sm"><strong className="text-gray-600">Frame mode:</strong> {result.framemode}</p>
                     <p className="text-sm"><strong className="text-gray-600">Tempo de exposição:</strong> {result.exptime}</p>
