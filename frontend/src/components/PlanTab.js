@@ -237,7 +237,12 @@ export default function PlanTab() {
                 <label className="block text-gray-700 font-medium mb-2">Celestial Object (Optional):</label>
                 <select
                     value={objectName}
-                    onChange={(e) => setObjectName(e.target.value)}
+                    onChange={(e) => {
+                        setObjectName(e.target.value)
+                        setInputValue("");
+                        setRA(null);
+                        setDEC(null);
+                    }}
                     className="w-full p-2 border rounded-md"
                 >
                     <option key={0} value={null}>
@@ -278,10 +283,9 @@ export default function PlanTab() {
                     type="text"
                     value={inputValue}
                     onChange={handleInputChange}
-                    className={`w-full p-2 border ${
-                        isValid ? "border-green-500" : "border-red-500"
-                    } rounded-md`}
+                    className={`w-full p-2 border rounded-md`}
                     placeholder="Digite as coordenadas..."
+                    disabled={!(objectName === null || objectName === "")}
                 />
             </div>
 
