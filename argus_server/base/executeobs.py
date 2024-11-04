@@ -95,7 +95,7 @@ def create_instructions_from_plan(plan_id):
     instructions = ""
     
     if plan.object_name:
-        instructions += f"SlewTo        , {plan.object_name}       ,\n"
+        instructions += f"SlewToObject  , {plan.object_name}       ,\n"
     else:
         coordinates = convert_coordinates(plan.ra, plan.dec)
         instructions += f"SlewToRaDec   , {coordinates[1]}         ,\n"

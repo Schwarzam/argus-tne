@@ -32,11 +32,9 @@ export default function PlanTab() {
     const { setShouldRefetch } = usePlanContext();
 
     const celestialObjects = [
-        { label: "Sun", value: "sun" },
         { label: "Mercury", value: "mercury" },
         { label: "Venus", value: "venus" },
-        { label: "Earth", value: "earth" },
-        { label: "Earth's Moon", value: "moon" },
+        { label: "Moon", value: "moon" },
         { label: "Mars", value: "mars" },
         { label: "Jupiter", value: "jupiter barycenter" },
         { label: "Saturn", value: "saturn barycenter" },

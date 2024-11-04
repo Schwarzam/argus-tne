@@ -21,11 +21,9 @@ ts = load.timescale()
 
 # Dictionary of bodies in ephemeris files
 bodies = {
-    "Sun": planets['sun'],
     "Mercury": planets['mercury'],
     "Venus": planets['venus'],
-    "Earth": planets['earth'],
-    "Earth's Moon": planets['moon'],
+    "Moon": planets['moon'],
     "Mars": planets['mars'],
     "Jupiter": planets['jupiter barycenter'],
     "Saturn": planets['saturn barycenter'],
