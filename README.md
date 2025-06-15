@@ -2,7 +2,7 @@
 
 Written by Gustavo Schwarz, 2023.
 
-Member of the [Telescopes in Schools](http://www.telescopiosnaescola.pro.br/) project.
+[Telescopes in Schools](http://www.telescopiosnaescola.pro.br/) project.
 
 The "Argus" is a Schmidt-Cassegrain type telescope, Celestron brand, with a 28cm aperture and 2.8m focal length. It has a CCD ST7-XE (astronomical digital camera) with red, green, blue, ultraviolet, and infrared filters. The robotic assembly, Paramount GT1100-S, can be operated remotely by any school with internet access.
 
@@ -80,6 +80,13 @@ This will start the django server on port 8000. You can access the admin page on
 ## Development
 
 This was developed using Django for the server and React for the frontend. 
+
+The backend is inside the folder `argus_server`. It's a django project, so to run it you should follow the instructions above, and in the settings.py should point to a valid postgres or sqllite database. By default you shouldn't worry about this because it's set to sqlite and it creates it self.
+
+All the backend logic and APIs are inside the folders `base` and `users` in the `argus_server` folder. The code is well modulated and is all documented. While searching for endpoints, use ctrl + alt + f to search for all patterns, everything should be easy to find. 
+
+The frontend follows a similar modulated logic. It's inside the frontend folder, and to run it just use the `npm i` and then `npm start` because it's a ReactJS package. 
+Inside the components folder there is all pages, and the code is all documented. 
 
 To run the frontend in development mode go to the 'frontend' folder and run the following command:
 
