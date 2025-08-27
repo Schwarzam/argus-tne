@@ -2,15 +2,25 @@ import React, { useEffect, useState } from "react";
 
 import sio from "../auth/socket";
 
-export default function TelescopeStatus() {
+export default function TelescopeStatus({ onPositionUpdate }) {
 
     const [telescopeStatus, setTelescopeStatus] = useState({});
 
     useEffect(() => {
 
-
         sio.on("telescope_status", (message) => {
             setTelescopeStatus(message);
+            
+            // Notify parent component about position update
+            if (onPositionUpdate && message.ra && message.dec) {
+                onPositionUpdate({
+                    ra: message.ra,
+                    dec: message.dec,
+                    alt: message.alt,
+                    az: message.az,
+                    status: message.status
+                });
+            }
         });
 
         sio.send('check_telescope_status');
@@ -20,7 +30,7 @@ export default function TelescopeStatus() {
 
         return () => clearInterval(interval);
         
-    }, []);
+    }, [onPositionUpdate]);
 
 
     return (

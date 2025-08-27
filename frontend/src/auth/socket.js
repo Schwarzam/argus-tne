@@ -3,11 +3,13 @@ const socket = io('/', { withCredentials: true });
 
 class Socket{
     constructor(){
-        this.socket = null;
+        this.socket = io('/', { withCredentials: true });
     }
 
     connect(){
-        this.socket = io('/', { withCredentials: true });
+        if (!this.socket) {
+            this.socket = io('/', { withCredentials: true });
+        }
     }
 
     disconnect(){
@@ -20,6 +22,12 @@ class Socket{
 
     on(event, callback){
         this.socket.on(event, callback);
+    }
+
+    off(event, callback){
+        if (this.socket && this.socket.off) {
+            this.socket.off(event, callback);
+        }
     }
 }
 

@@ -8,7 +8,7 @@ import { usePlanContext } from "./PlanContext";
 import { getCookie } from "../auth/cookies";
 import { toast } from "react-toastify";
 
-export default function PlanTab() {
+export default function PlanTab({ coordinateFromAladin = null, onPlanCreated }) {
     const [inputValue, setInputValue] = useState("");
     const [observationName, setObservationName] = useState("");
     const [objectName, setObjectName] = useState(null);
@@ -71,6 +71,36 @@ export default function PlanTab() {
         }, 300000);   
         return () => clearInterval(interval);
     }, [])
+
+    // Handle coordinates from Aladin click
+    useEffect(() => {
+        if (coordinateFromAladin && coordinateFromAladin.ra && coordinateFromAladin.dec) {
+            const raStr = coordinateFromAladin.ra;
+            const decStr = coordinateFromAladin.dec;
+            
+            setRA(raStr);
+            setDEC(decStr);
+            setInputValue(`${raStr}  ${decStr}`);
+            setIsValid(true);
+            
+            // Clear object selection when using coordinates
+            setObjectName(null);
+            
+            // Check observability
+            sio.send("checkcoord", {ra: raStr, dec: decStr});
+            
+            if (startTime !== "" && startTime !== null){
+                sio.send("checkcoordondate", {ra: raStr, dec: decStr, date: startTime});
+            }
+            
+            // Only auto-generate name if user hasn't typed anything
+            if (!observationName || observationName === "") {
+                setObservationName(`Coordenada ${String(raStr).substring(0,8)} ${String(decStr).substring(0,8)}`);
+            }
+            
+            toast.success("Coordenadas preenchidas do Aladin!");
+        }
+    }, [coordinateFromAladin, startTime])
 
     useEffect(() => {
         sio.on("message", (message) => {
@@ -181,8 +211,8 @@ export default function PlanTab() {
             date: startTime
         };
 
-        // Include object_name if selected
-        if (objectName) {
+        // Include object_name only if it exists and is not null/empty
+        if (objectName && objectName.trim() && objectName !== "null") {
             data.object_name = objectName;
         }
 
@@ -191,6 +221,11 @@ export default function PlanTab() {
                 if (response.data.status === "success") {
                     if (observarnow) {
                         observar(response.data.plan_id);
+                    }
+
+                    // Notify parent component about new plan
+                    if (onPlanCreated) {
+                        onPlanCreated(response.data.plan);
                     }
 
                     resetStates();
@@ -216,9 +251,44 @@ export default function PlanTab() {
     }
 
 
+    const quickObserve = () => {
+        if (!ra || !dec) {
+            toast.error("Selecione coordenadas primeiro!");
+            return;
+        }
+        
+        // Auto-fill with defaults for quick observation using local time
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5); // 5 minutes from now
+        const isoString = now.toISOString().slice(0, 16);
+        
+        setStartTime(isoString);
+        if (!observationName) {
+            setObservationName(`Observação Rápida ${String(ra).substring(0,6)} ${String(dec).substring(0,6)}`);
+        }
+        if (selectedFilters.length === 0) {
+            setSelectedFilters(['R']); // Default to R filter
+        }
+        if (!frameMode) {
+            setFrame('Light');
+        }
+        
+        toast.success("Configuração rápida aplicada! Ajuste se necessário e salve.");
+    };
+
     return (
         <div className="w-full max-w-lg mx-auto py-6 px-4 rounded-md">
-            <h3 className="font-bold text-2xl mb-4">Planejamento de observação</h3>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-2xl">Planejamento</h3>
+                {(ra && dec) && (
+                    <button 
+                        onClick={quickObserve}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                    >
+                        ⚡ Config. Rápida
+                    </button>
+                )}
+            </div>
             
             <div className="py-4 mb-4 w-full border border-red-400 rounded-md">
                 <div className="pl-2">
@@ -291,27 +361,35 @@ export default function PlanTab() {
                 <p className="text-red-500">Coordenadas não identificadas. RA e DEC devem estar separados por dois espaços.</p>
             )}
 
+            {/* Coordinate Display */}
+            {(ra && dec) && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-orange-800 mb-2">🎯 Coordenada Selecionada</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span className="text-gray-600">RA:</span>
+                            <p className="font-mono text-gray-800">{ra}</p>
+                        </div>
+                        <div>
+                            <span className="text-gray-600">DEC:</span>
+                            <p className="font-mono text-gray-800">{dec}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Observability Status */}
             <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="bg-white p-4 border rounded-md shadow-sm">
-                    <p className="text-gray-700 font-medium">RA:</p>
-                    <p className="text-gray-900 mt-2">{ra}</p>
-                </div>
-
-                <div className="bg-white p-4 border rounded-md shadow-sm">
-                    <p className="text-gray-700 font-medium">DEC:</p>
-                    <p className="text-gray-900 mt-2">{dec}</p>
-                </div>
-
                 <div className="bg-white p-4 border rounded-md shadow-sm relative">
                     <p className="text-gray-700 font-medium">Observação agora:</p>
                     <div className={`absolute top-0 right-0 mt-4 mr-4 w-6 h-6 rounded-full ${currentObservationStatus === null ? 'bg-yellow-400' : currentObservationStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <p className="text-sm">{currentObservationStatus === null ? 'Não aprovado' : currentObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
+                    <p className="text-sm">{currentObservationStatus === null ? 'Verificando...' : currentObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
                 </div>
 
                 <div className="bg-white p-4 border rounded-md shadow-sm relative">
                     <p className="text-gray-700 font-medium">Observação no horário:</p>
                     <div className={`absolute top-0 right-0 mt-4 mr-4 w-6 h-6 rounded-full ${futureObservationStatus === null ? 'bg-yellow-400' : futureObservationStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <p className="text-sm">{futureObservationStatus === null ? 'Não aprovado' : futureObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
+                    <p className="text-sm">{futureObservationStatus === null ? 'Verificando...' : futureObservationStatus ? 'Aprovado' : 'Não aprovado'}</p>
                 </div>
             </div>
 
@@ -355,9 +433,33 @@ export default function PlanTab() {
                 </select>
             </div>
 
-            <div className="text-center w-full grid grid-cols-2 gap-4 mt-4">
-                <button onClick={() => salvarPlano(true)} className={`${currentObservationStatus === null ? 'bg-yellow-400' : currentObservationStatus ? 'bg-green-500' : 'bg-red-500'} w-full text-white px-3 py-2 rounded-md transition`}>Salvar e Observar agora</button>
-                <button onClick={() => salvarPlano()} className={`${currentObservationStatus === null ? 'bg-yellow-400' : futureObservationStatus ? 'bg-green-500' : 'bg-red-500'} w-full text-white px-3 py-2 rounded-md transition`}>Salvar Plano</button>
+            {/* Action Buttons */}
+            <div className="sticky bottom-0 bg-white pt-4 border-t mt-6">
+                <div className="grid grid-cols-2 gap-3">
+                    <button 
+                        onClick={() => salvarPlano()} 
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-md transition font-medium"
+                        disabled={!ra || !dec || !observationName || selectedFilters.length === 0 || !frameMode || !startTime}
+                    >
+                        💾 Salvar Plano
+                    </button>
+                    <button 
+                        onClick={() => salvarPlano(true)} 
+                        className={`${currentObservationStatus ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 cursor-not-allowed'} text-white px-4 py-3 rounded-md transition font-medium`}
+                        disabled={!currentObservationStatus || !ra || !dec || !observationName || selectedFilters.length === 0 || !frameMode}
+                    >
+                        🚀 Observar Agora
+                    </button>
+                </div>
+                
+                {/* Quick status indicator */}
+                <div className="mt-2 text-center text-xs text-gray-500">
+                    {!ra || !dec ? 'Selecione coordenadas no Aladin' :
+                     !observationName ? 'Digite o nome da observação' :
+                     selectedFilters.length === 0 ? 'Selecione filtros' :
+                     !frameMode ? 'Selecione tipo de frame' :
+                     !startTime ? 'Defina horário' : 'Tudo pronto!'}
+                </div>
             </div>
         </div>
     );
